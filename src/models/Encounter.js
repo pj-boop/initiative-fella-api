@@ -1,0 +1,148 @@
+import mongoose from "mongoose";
+
+const initiativeEntryConsumableSchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    maxUses: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+    currentUses: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+    resetOn: {
+      type: String,
+      default: "never",
+      trim: true,
+      lowercase: true,
+    },
+    notes: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+  },
+  { timestamps: true }
+);
+
+const initiativeEntrySchema = new mongoose.Schema(
+  {
+    characterId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Character",
+    },
+    name: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    type: {
+      type: String,
+      required: true,
+      trim: true,
+      lowercase: true,
+    },
+    maxHp: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+    currentHp: {
+      type: Number,
+      required: true,
+      min: 0,
+      default: function () {
+        return this.maxHp;
+      },
+    },
+    tempHp: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    armorClass: {
+      type: Number,
+      default: 10,
+      min: 0,
+    },
+    initiativeBonus: {
+      type: Number,
+      default: 0,
+    },
+    initiativeRoll: {
+      type: Number,
+      default: 0,
+    },
+    stats: {
+      type: mongoose.Schema.Types.Mixed,
+      default: () => ({}),
+    },
+    consumables: {
+      type: [initiativeEntryConsumableSchema],
+      default: () => [],
+    },
+    conditions: {
+      type: [String],
+      default: () => [],
+    },
+    status: {
+      type: String,
+      default: "active",
+      trim: true,
+      lowercase: true,
+    },
+    notes: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+  },
+  { timestamps: true }
+);
+
+const encounterSchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    status: {
+      type: String,
+      default: "draft",
+      trim: true,
+      lowercase: true,
+    },
+    round: {
+      type: Number,
+      default: 1,
+      min: 1,
+    },
+    currentTurnIndex: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    entries: {
+      type: [initiativeEntrySchema],
+      default: () => [],
+    },
+    notes: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+  },
+  { timestamps: true }
+);
+
+const Encounter = mongoose.model("Encounter", encounterSchema);
+
+export default Encounter;
