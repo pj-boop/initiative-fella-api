@@ -32,7 +32,10 @@ const pickAllowedFields = (body) => {
 
 router.get("/", async (req, res) => {
   try {
-    const encounters = await Encounter.find(buildEncounterFilters(req.query)).sort({ createdAt: -1 });
+    const encounters = await Encounter.find({
+      user: req.user._id,
+      ...buildEncounterFilters(req.query),
+    }).sort({ createdAt: -1 });
 
     res.status(200).json(encounters);
   } catch (error) {
@@ -71,7 +74,10 @@ router.post("/", async (req, res) => {
 
 router.get("/:encounterId", validateEncounterId, async (req, res) => {
   try {
-    const encounter = await Encounter.findById(req.params.encounterId);
+    const encounter = await Encounter.findOne({
+      _id: req.params.encounterId,
+      user: req.user._id,
+    });
 
     if (!encounter) {
       return res.status(404).json({ message: "Encounter not found" });
@@ -92,10 +98,17 @@ router.patch("/:encounterId", validateEncounterId, async (req, res) => {
       return res.status(400).json({ message: "No valid encounter fields provided" });
     }
 
-    const encounter = await Encounter.findByIdAndUpdate(req.params.encounterId, updates, {
-      new: true,
-      runValidators: true,
-    });
+    const encounter = await Encounter.findOneAndUpdate(
+      {
+        _id: req.params.encounterId,
+        user: req.user._id,
+      },
+      updates,
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
 
     if (!encounter) {
       return res.status(404).json({ message: "Encounter not found" });
@@ -115,7 +128,10 @@ router.patch("/:encounterId", validateEncounterId, async (req, res) => {
 
 router.delete("/:encounterId", validateEncounterId, async (req, res) => {
   try {
-    const encounter = await Encounter.findByIdAndDelete(req.params.encounterId);
+    const encounter = await Encounter.findOneAndDelete({
+      _id: req.params.encounterId,
+      user: req.user._id,
+    });
 
     if (!encounter) {
       return res.status(404).json({ message: "Encounter not found" });
