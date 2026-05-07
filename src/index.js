@@ -24,14 +24,14 @@ for (const key of requiredEnv) {
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(cors());
-// // for production
-// app.use(
-//   cors({
-//     origin: process.env.CLIENT_URL,
-//     credentials: true,
-//   })
-// );
+const corsOptions =
+  process.env.NODE_ENV === "production"
+    ? { origin: process.env.CLIENT_URL }
+    : { origin: "http://localhost:5173" };
+
+// If the frontend uses cookies in the future, add `credentials: true` here
+// and send matching credentials from frontend requests.
+app.use(cors(corsOptions));
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
