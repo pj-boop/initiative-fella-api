@@ -418,6 +418,12 @@ router.post("/:entryId/consumables", validateEncounterId, validateEntryId, async
       return res.status(400).json({ message: "maxUses and currentUses must be non-negative numbers" });
     }
 
+    if (parsedCurrentUses > parsedMaxUses) {
+      return res.status(400).json({
+        message: "currentUses cannot exceed maxUses",
+      });
+    }
+
     const result = await findEntryOrRespond(req, res);
     if (!result) return;
 

@@ -43,11 +43,12 @@ const initiativeEntrySchema = new mongoose.Schema(
       trim: true,
     },
     type: {
-      type: String,
-      required: true,
-      trim: true,
-      lowercase: true,
-    },
+        type: String,
+        required: true,
+        enum: ["player", "npc", "monster"],
+        lowercase: true,
+        trim: true,
+      },
     maxHp: {
       type: Number,
       required: true,

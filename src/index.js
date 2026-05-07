@@ -17,6 +17,13 @@ const PORT = process.env.PORT || 3000;
 
 
 app.use(cors());
+// // for production
+// app.use(
+//   cors({
+//     origin: process.env.CLIENT_URL,
+//     credentials: true,
+//   })
+// );
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
@@ -34,11 +41,17 @@ app.get("/health", (req, res) => {
   res.json({ status: "ok" });
 });
 
-if (process.env.NODE_ENV === "production") {
-  job.start();
-}
+// if (process.env.NODE_ENV === "production") {
+//   job.start();
+// }
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-  connectDB();
-});
+try {
+  await connectDB();
+
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+} catch (error) {
+  console.error("Failed to start server", error);
+  process.exit(1);
+}
