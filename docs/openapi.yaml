@@ -1,0 +1,1377 @@
+openapi: 3.1.0
+info:
+  title: Initiative Fella API
+  version: 1.0.0
+  description: |
+    OpenAPI specification for the Initiative Fella backend.
+
+    Authentication endpoints return a JWT. Send protected requests with
+    `Authorization: Bearer <token>`.
+servers:
+  - url: http://localhost:3000
+    description: Local development server
+tags:
+  - name: Auth
+    description: Account registration and login.
+  - name: Characters
+    description: Reusable character records owned by the authenticated user.
+  - name: Encounters
+    description: Encounter lifecycle, initiative order, and turns.
+  - name: Initiative Entries
+    description: Entries, HP, conditions, and consumables inside an encounter.
+security:
+  - bearerAuth: []
+paths:
+  /api/auth/register:
+    post:
+      tags: [Auth]
+      summary: Register a new user
+      description: Creates a user and returns a JWT plus public user profile data.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+            examples:
+              default:
+                value:
+                  username: fella
+                  email: fella@example.com
+                  password: secret123
+      responses:
+        '201':
+          description: User registered.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/auth/login:
+    post:
+      tags: [Auth]
+      summary: Log in an existing user
+      description: Authenticates by email and password, then returns a JWT plus public user profile data.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            examples:
+              default:
+                value:
+                  email: fella@example.com
+                  password: secret123
+      responses:
+        '200':
+          description: User authenticated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/characters:
+    get:
+      tags: [Characters]
+      summary: List characters
+      description: Returns the authenticated user's characters sorted by newest first.
+      parameters:
+        - $ref: '#/components/parameters/CharacterTypeQuery'
+      responses:
+        '200':
+          description: Characters found.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Character'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      tags: [Characters]
+      summary: Create a character
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCharacterRequest'
+      responses:
+        '201':
+          description: Character created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Character'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/characters/{characterId}:
+    parameters:
+      - $ref: '#/components/parameters/CharacterId'
+    get:
+      tags: [Characters]
+      summary: Get a character
+      responses:
+        '200':
+          description: Character found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Character'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    patch:
+      tags: [Characters]
+      summary: Update a character
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCharacterRequest'
+      responses:
+        '200':
+          description: Character updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Character'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      tags: [Characters]
+      summary: Delete a character
+      responses:
+        '200':
+          description: Character deleted.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [message, character]
+                properties:
+                  message:
+                    type: string
+                    example: Character deleted
+                  character:
+                    $ref: '#/components/schemas/Character'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/encounters:
+    get:
+      tags: [Encounters]
+      summary: List encounters
+      description: Returns the authenticated user's encounters sorted by newest first.
+      parameters:
+        - $ref: '#/components/parameters/EncounterStatusQuery'
+      responses:
+        '200':
+          description: Encounters found.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Encounter'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      tags: [Encounters]
+      summary: Create an encounter
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateEncounterRequest'
+      responses:
+        '201':
+          description: Encounter created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Encounter'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/encounters/{encounterId}:
+    parameters:
+      - $ref: '#/components/parameters/EncounterId'
+    get:
+      tags: [Encounters]
+      summary: Get an encounter
+      responses:
+        '200':
+          description: Encounter found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Encounter'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    patch:
+      tags: [Encounters]
+      summary: Update an encounter
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateEncounterRequest'
+      responses:
+        '200':
+          description: Encounter updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Encounter'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      tags: [Encounters]
+      summary: Delete an encounter
+      responses:
+        '200':
+          description: Encounter deleted.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [message, encounter]
+                properties:
+                  message:
+                    type: string
+                    example: Encounter deleted
+                  encounter:
+                    $ref: '#/components/schemas/Encounter'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/encounters/{encounterId}/roll-initiative:
+    parameters:
+      - $ref: '#/components/parameters/EncounterId'
+    post:
+      tags: [Encounters]
+      summary: Roll initiative for an encounter
+      description: Rolls initiative for turn-eligible entries. Optional provided rolls must be integers from 1 to 20.
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RollInitiativeRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/TurnResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/encounters/{encounterId}/start:
+    parameters:
+      - $ref: '#/components/parameters/EncounterId'
+    post:
+      tags: [Encounters]
+      summary: Start an encounter
+      responses:
+        '200':
+          $ref: '#/components/responses/TurnResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/encounters/{encounterId}/turns/next:
+    parameters:
+      - $ref: '#/components/parameters/EncounterId'
+    post:
+      tags: [Encounters]
+      summary: Advance to the next turn
+      responses:
+        '200':
+          $ref: '#/components/responses/TurnResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/encounters/{encounterId}/turns/previous:
+    parameters:
+      - $ref: '#/components/parameters/EncounterId'
+    post:
+      tags: [Encounters]
+      summary: Move to the previous turn
+      responses:
+        '200':
+          $ref: '#/components/responses/TurnResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/encounters/{encounterId}/turns/current:
+    parameters:
+      - $ref: '#/components/parameters/EncounterId'
+    patch:
+      tags: [Encounters]
+      summary: Set the current turn or round
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCurrentTurnRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/TurnResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/encounters/{encounterId}/end:
+    parameters:
+      - $ref: '#/components/parameters/EncounterId'
+    post:
+      tags: [Encounters]
+      summary: End an encounter
+      responses:
+        '200':
+          $ref: '#/components/responses/TurnResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/encounters/{encounterId}/entries/from-character:
+    parameters:
+      - $ref: '#/components/parameters/EncounterId'
+    post:
+      tags: [Initiative Entries]
+      summary: Add an initiative entry from an existing character
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [characterId]
+              additionalProperties: false
+              properties:
+                characterId:
+                  $ref: '#/components/schemas/ObjectId'
+      responses:
+        '201':
+          $ref: '#/components/responses/EntryMutationCreatedResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/encounters/{encounterId}/entries/custom:
+    parameters:
+      - $ref: '#/components/parameters/EncounterId'
+    post:
+      tags: [Initiative Entries]
+      summary: Add a custom initiative entry
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateInitiativeEntryRequest'
+      responses:
+        '201':
+          $ref: '#/components/responses/EntryMutationCreatedResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/encounters/{encounterId}/entries/{entryId}:
+    parameters:
+      - $ref: '#/components/parameters/EncounterId'
+      - $ref: '#/components/parameters/EntryId'
+    patch:
+      tags: [Initiative Entries]
+      summary: Update an initiative entry
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateInitiativeEntryRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/EntryMutationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      tags: [Initiative Entries]
+      summary: Remove an initiative entry from turn order
+      description: Marks the entry status as `removed` rather than deleting the subdocument.
+      responses:
+        '200':
+          description: Entry removed.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/EntryMutationResponse'
+                  - type: object
+                    required: [message]
+                    properties:
+                      message:
+                        type: string
+                        example: Entry removed
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/encounters/{encounterId}/entries/{entryId}/damage:
+    parameters:
+      - $ref: '#/components/parameters/EncounterId'
+      - $ref: '#/components/parameters/EntryId'
+    post:
+      tags: [Initiative Entries]
+      summary: Apply damage to an initiative entry
+      requestBody:
+        $ref: '#/components/requestBodies/AmountBody'
+      responses:
+        '200':
+          $ref: '#/components/responses/EntryMutationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/encounters/{encounterId}/entries/{entryId}/heal:
+    parameters:
+      - $ref: '#/components/parameters/EncounterId'
+      - $ref: '#/components/parameters/EntryId'
+    post:
+      tags: [Initiative Entries]
+      summary: Heal an initiative entry
+      requestBody:
+        $ref: '#/components/requestBodies/AmountBody'
+      responses:
+        '200':
+          $ref: '#/components/responses/EntryMutationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/encounters/{encounterId}/entries/{entryId}/temp-hp:
+    parameters:
+      - $ref: '#/components/parameters/EncounterId'
+      - $ref: '#/components/parameters/EntryId'
+    post:
+      tags: [Initiative Entries]
+      summary: Set temporary HP for an initiative entry
+      requestBody:
+        $ref: '#/components/requestBodies/AmountBody'
+      responses:
+        '200':
+          $ref: '#/components/responses/EntryMutationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/encounters/{encounterId}/entries/{entryId}/conditions:
+    parameters:
+      - $ref: '#/components/parameters/EncounterId'
+      - $ref: '#/components/parameters/EntryId'
+    post:
+      tags: [Initiative Entries]
+      summary: Add a condition to an initiative entry
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [condition]
+              additionalProperties: false
+              properties:
+                condition:
+                  type: string
+                  minLength: 1
+                  example: prone
+      responses:
+        '200':
+          $ref: '#/components/responses/EntryMutationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/encounters/{encounterId}/entries/{entryId}/conditions/{condition}:
+    parameters:
+      - $ref: '#/components/parameters/EncounterId'
+      - $ref: '#/components/parameters/EntryId'
+      - name: condition
+        in: path
+        required: true
+        schema:
+          type: string
+        description: Condition text to remove.
+    delete:
+      tags: [Initiative Entries]
+      summary: Remove a condition from an initiative entry
+      responses:
+        '200':
+          $ref: '#/components/responses/EntryMutationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/encounters/{encounterId}/entries/{entryId}/consumables:
+    parameters:
+      - $ref: '#/components/parameters/EncounterId'
+      - $ref: '#/components/parameters/EntryId'
+    post:
+      tags: [Initiative Entries]
+      summary: Add a consumable to an initiative entry
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateConsumableRequest'
+      responses:
+        '201':
+          description: Consumable added.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConsumableMutationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/encounters/{encounterId}/entries/{entryId}/consumables/{consumableId}:
+    parameters:
+      - $ref: '#/components/parameters/EncounterId'
+      - $ref: '#/components/parameters/EntryId'
+      - $ref: '#/components/parameters/ConsumableId'
+    patch:
+      tags: [Initiative Entries]
+      summary: Update an initiative entry consumable
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateConsumableRequest'
+      responses:
+        '200':
+          description: Consumable updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConsumableMutationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      tags: [Initiative Entries]
+      summary: Remove an initiative entry consumable
+      responses:
+        '200':
+          description: Consumable removed.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/EntryMutationResponse'
+                  - type: object
+                    required: [message]
+                    properties:
+                      message:
+                        type: string
+                        example: Consumable removed
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/encounters/{encounterId}/entries/{entryId}/consumables/{consumableId}/use:
+    parameters:
+      - $ref: '#/components/parameters/EncounterId'
+      - $ref: '#/components/parameters/EntryId'
+      - $ref: '#/components/parameters/ConsumableId'
+    post:
+      tags: [Initiative Entries]
+      summary: Use one charge of a consumable
+      responses:
+        '200':
+          description: Consumable used.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConsumableMutationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    CharacterId:
+      name: characterId
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/ObjectId'
+    EncounterId:
+      name: encounterId
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/ObjectId'
+    EntryId:
+      name: entryId
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/ObjectId'
+    ConsumableId:
+      name: consumableId
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/ObjectId'
+    CharacterTypeQuery:
+      name: type
+      in: query
+      required: false
+      schema:
+        $ref: '#/components/schemas/CharacterType'
+      description: Optional type filter. The backend lowercases the value before filtering.
+    EncounterStatusQuery:
+      name: status
+      in: query
+      required: false
+      schema:
+        $ref: '#/components/schemas/EncounterStatus'
+      description: Optional status filter. The backend lowercases the value before filtering.
+  requestBodies:
+    AmountBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [amount]
+            additionalProperties: false
+            properties:
+              amount:
+                type: integer
+                minimum: 0
+                description: Damage and healing require a positive integer; temp HP accepts zero.
+                example: 5
+  responses:
+    BadRequest:
+      description: Invalid input.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    Unauthorized:
+      description: Missing or invalid bearer token.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    NotFound:
+      description: Requested resource was not found for the authenticated user.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    InternalServerError:
+      description: Internal server error.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    TurnResponse:
+      description: Encounter turn state.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/TurnResponse'
+    EntryMutationResponse:
+      description: Entry and containing encounter after mutation.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EntryMutationResponse'
+    EntryMutationCreatedResponse:
+      description: Entry created and containing encounter after mutation.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/EntryMutationResponse'
+  schemas:
+    ObjectId:
+      type: string
+      pattern: '^[0-9a-fA-F]{24}$'
+      example: 65f1c2a3b4d5e6f7890abc12
+    DateTime:
+      type: string
+      format: date-time
+      example: '2026-05-07T00:00:00.000Z'
+    CharacterType:
+      type: string
+      enum: [player, npc, monster]
+    EncounterStatus:
+      type: string
+      enum: [draft, active, completed]
+    EntryStatus:
+      type: string
+      enum: [active, down, dead, removed]
+    ConsumableResetOn:
+      type: string
+      enum: [shortRest, longRest, never]
+      default: never
+    ApiError:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
+          example: Invalid credentials
+    AuthUser:
+      type: object
+      required: [id, username, email, profileImage, createdAt]
+      properties:
+        id:
+          $ref: '#/components/schemas/ObjectId'
+        username:
+          type: string
+          minLength: 3
+          example: fella
+        email:
+          type: string
+          format: email
+          example: fella@example.com
+        profileImage:
+          type: string
+          default: ''
+          example: https://api.dicebear.com/7.x/avataaars/svg?seed=fella
+        createdAt:
+          $ref: '#/components/schemas/DateTime'
+    AuthResponse:
+      type: object
+      required: [token, user]
+      properties:
+        token:
+          type: string
+          description: JWT signed with the user id and a 15 day expiration.
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        user:
+          $ref: '#/components/schemas/AuthUser'
+    RegisterRequest:
+      type: object
+      required: [username, email, password]
+      additionalProperties: false
+      properties:
+        username:
+          type: string
+          minLength: 3
+          example: fella
+        email:
+          type: string
+          format: email
+          example: fella@example.com
+        password:
+          type: string
+          minLength: 6
+          format: password
+          writeOnly: true
+          example: secret123
+    LoginRequest:
+      type: object
+      required: [email, password]
+      additionalProperties: false
+      properties:
+        email:
+          type: string
+          format: email
+          example: fella@example.com
+        password:
+          type: string
+          format: password
+          writeOnly: true
+          example: secret123
+    Character:
+      type: object
+      required: [_id, user, name, type, maxHp, armorClass, initiativeBonus, stats, consumables, notes, createdAt, updatedAt]
+      properties:
+        _id:
+          $ref: '#/components/schemas/ObjectId'
+        user:
+          $ref: '#/components/schemas/ObjectId'
+        name:
+          type: string
+          example: Briv Stonehide
+        type:
+          $ref: '#/components/schemas/CharacterType'
+        maxHp:
+          type: integer
+          minimum: 0
+          example: 42
+        armorClass:
+          type: integer
+          minimum: 0
+          default: 10
+          example: 16
+        initiativeBonus:
+          type: integer
+          default: 0
+          example: 2
+        stats:
+          type: object
+          additionalProperties: true
+          default: {}
+          example:
+            str: 16
+            dex: 14
+            con: 15
+        consumables:
+          type: array
+          default: []
+          items:
+            $ref: '#/components/schemas/Consumable'
+          description: Character model stores consumables as mixed objects; this schema documents the supported consumable shape used by encounter entries.
+        notes:
+          type: string
+          default: ''
+          example: Front-line fighter.
+        createdAt:
+          $ref: '#/components/schemas/DateTime'
+        updatedAt:
+          $ref: '#/components/schemas/DateTime'
+    CreateCharacterRequest:
+      type: object
+      required: [name, type, maxHp]
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+        type:
+          $ref: '#/components/schemas/CharacterType'
+        maxHp:
+          type: integer
+          minimum: 0
+        armorClass:
+          type: integer
+          minimum: 0
+          default: 10
+        initiativeBonus:
+          type: integer
+          default: 0
+        stats:
+          type: object
+          additionalProperties: true
+          default: {}
+        consumables:
+          type: array
+          default: []
+          items:
+            $ref: '#/components/schemas/Consumable'
+        notes:
+          type: string
+          default: ''
+    UpdateCharacterRequest:
+      type: object
+      minProperties: 1
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+        type:
+          $ref: '#/components/schemas/CharacterType'
+        maxHp:
+          type: integer
+          minimum: 0
+        armorClass:
+          type: integer
+          minimum: 0
+        initiativeBonus:
+          type: integer
+        stats:
+          type: object
+          additionalProperties: true
+        consumables:
+          type: array
+          items:
+            $ref: '#/components/schemas/Consumable'
+        notes:
+          type: string
+    Encounter:
+      type: object
+      required: [_id, user, name, status, round, currentTurnIndex, entries, notes, createdAt, updatedAt]
+      properties:
+        _id:
+          $ref: '#/components/schemas/ObjectId'
+        user:
+          $ref: '#/components/schemas/ObjectId'
+        name:
+          type: string
+          example: Goblin Ambush
+        status:
+          $ref: '#/components/schemas/EncounterStatus'
+        round:
+          type: integer
+          minimum: 1
+          default: 1
+        currentTurnIndex:
+          type: integer
+          minimum: 0
+          default: 0
+        entries:
+          type: array
+          default: []
+          items:
+            $ref: '#/components/schemas/InitiativeEntry'
+        notes:
+          type: string
+          default: ''
+        createdAt:
+          $ref: '#/components/schemas/DateTime'
+        updatedAt:
+          $ref: '#/components/schemas/DateTime'
+    CreateEncounterRequest:
+      type: object
+      required: [name]
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          example: Goblin Ambush
+        notes:
+          type: string
+          default: ''
+    UpdateEncounterRequest:
+      type: object
+      minProperties: 1
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+        status:
+          $ref: '#/components/schemas/EncounterStatus'
+        notes:
+          type: string
+    InitiativeEntry:
+      type: object
+      required: [_id, name, type, maxHp, currentHp, tempHp, armorClass, initiativeBonus, initiativeRoll, initiativeTotal, stats, consumables, conditions, status, notes, createdAt, updatedAt]
+      properties:
+        _id:
+          $ref: '#/components/schemas/ObjectId'
+        characterId:
+          oneOf:
+            - $ref: '#/components/schemas/ObjectId'
+            - type: 'null'
+          description: Source character id when the entry was created from a character.
+        name:
+          type: string
+        type:
+          $ref: '#/components/schemas/CharacterType'
+        maxHp:
+          type: integer
+          minimum: 0
+        currentHp:
+          type: integer
+          minimum: 0
+          description: Defaults to maxHp when omitted.
+        tempHp:
+          type: integer
+          minimum: 0
+          default: 0
+        armorClass:
+          type: integer
+          minimum: 0
+          default: 10
+        initiativeBonus:
+          type: integer
+          default: 0
+        initiativeRoll:
+          oneOf:
+            - type: integer
+            - type: 'null'
+          default: null
+        initiativeTotal:
+          oneOf:
+            - type: number
+            - type: 'null'
+          default: null
+        stats:
+          type: object
+          additionalProperties: true
+          default: {}
+        consumables:
+          type: array
+          default: []
+          items:
+            $ref: '#/components/schemas/Consumable'
+        conditions:
+          type: array
+          default: []
+          items:
+            type: string
+        status:
+          $ref: '#/components/schemas/EntryStatus'
+        notes:
+          type: string
+          default: ''
+        createdAt:
+          $ref: '#/components/schemas/DateTime'
+        updatedAt:
+          $ref: '#/components/schemas/DateTime'
+    CreateInitiativeEntryRequest:
+      type: object
+      required: [name, type, maxHp]
+      additionalProperties: false
+      properties:
+        characterId:
+          $ref: '#/components/schemas/ObjectId'
+        name:
+          type: string
+        type:
+          $ref: '#/components/schemas/CharacterType'
+        maxHp:
+          type: integer
+          minimum: 0
+        currentHp:
+          type: integer
+          minimum: 0
+          description: Defaults to maxHp when omitted.
+        tempHp:
+          type: integer
+          minimum: 0
+          default: 0
+        armorClass:
+          type: integer
+          minimum: 0
+          default: 10
+        initiativeBonus:
+          type: integer
+          default: 0
+        initiativeRoll:
+          oneOf:
+            - type: integer
+            - type: 'null'
+          default: null
+        stats:
+          type: object
+          additionalProperties: true
+          default: {}
+        consumables:
+          type: array
+          default: []
+          items:
+            $ref: '#/components/schemas/Consumable'
+        conditions:
+          type: array
+          default: []
+          items:
+            type: string
+        status:
+          $ref: '#/components/schemas/EntryStatus'
+        notes:
+          type: string
+          default: ''
+    UpdateInitiativeEntryRequest:
+      type: object
+      minProperties: 1
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+        type:
+          $ref: '#/components/schemas/CharacterType'
+        maxHp:
+          type: integer
+          minimum: 0
+        currentHp:
+          type: integer
+          minimum: 0
+        tempHp:
+          type: integer
+          minimum: 0
+        armorClass:
+          type: integer
+          minimum: 0
+        initiativeBonus:
+          type: integer
+        initiativeRoll:
+          oneOf:
+            - type: integer
+            - type: 'null'
+        stats:
+          type: object
+          additionalProperties: true
+        consumables:
+          type: array
+          items:
+            $ref: '#/components/schemas/Consumable'
+        conditions:
+          type: array
+          items:
+            type: string
+        status:
+          $ref: '#/components/schemas/EntryStatus'
+        notes:
+          type: string
+    Consumable:
+      type: object
+      required: [_id, name, maxUses, currentUses, resetOn, notes, createdAt, updatedAt]
+      properties:
+        _id:
+          $ref: '#/components/schemas/ObjectId'
+        name:
+          type: string
+          example: Rage
+        maxUses:
+          type: integer
+          minimum: 0
+          example: 3
+        currentUses:
+          type: integer
+          minimum: 0
+          example: 2
+        resetOn:
+          $ref: '#/components/schemas/ConsumableResetOn'
+        notes:
+          type: string
+          default: ''
+          example: Resets on long rest.
+        createdAt:
+          $ref: '#/components/schemas/DateTime'
+        updatedAt:
+          $ref: '#/components/schemas/DateTime'
+    CreateConsumableRequest:
+      type: object
+      required: [name, maxUses, currentUses]
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+        maxUses:
+          type: integer
+          minimum: 0
+        currentUses:
+          type: integer
+          minimum: 0
+        resetOn:
+          $ref: '#/components/schemas/ConsumableResetOn'
+        notes:
+          type: string
+          default: ''
+    UpdateConsumableRequest:
+      type: object
+      minProperties: 1
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+        maxUses:
+          type: integer
+          minimum: 0
+        currentUses:
+          type: integer
+          minimum: 0
+        resetOn:
+          $ref: '#/components/schemas/ConsumableResetOn'
+        notes:
+          type: string
+    RollInitiativeRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        rollsByEntryId:
+          type: object
+          description: Map of initiative entry ids to provided d20 rolls.
+          propertyNames:
+            pattern: '^[0-9a-fA-F]{24}$'
+          additionalProperties:
+            type: integer
+            minimum: 1
+            maximum: 20
+          example:
+            65f1c2a3b4d5e6f7890abc12: 17
+    UpdateCurrentTurnRequest:
+      type: object
+      minProperties: 1
+      additionalProperties: false
+      properties:
+        currentTurnIndex:
+          type: integer
+          minimum: 0
+          description: Zero-based index into the encounter entries array. Must point to a turn-eligible entry.
+        entryId:
+          $ref: '#/components/schemas/ObjectId'
+        round:
+          type: integer
+          minimum: 1
+      description: Provide either currentTurnIndex or entryId, not both; round may be included with either selector or by itself.
+    TurnResponse:
+      type: object
+      required: [encounter, currentEntry]
+      properties:
+        encounter:
+          $ref: '#/components/schemas/Encounter'
+        currentEntry:
+          oneOf:
+            - $ref: '#/components/schemas/InitiativeEntry'
+            - type: 'null'
+    EntryMutationResponse:
+      type: object
+      required: [entry, encounter]
+      properties:
+        entry:
+          $ref: '#/components/schemas/InitiativeEntry'
+        encounter:
+          $ref: '#/components/schemas/Encounter'
+    ConsumableMutationResponse:
+      type: object
+      required: [consumable, entry, encounter]
+      properties:
+        consumable:
+          $ref: '#/components/schemas/Consumable'
+        entry:
+          $ref: '#/components/schemas/InitiativeEntry'
+        encounter:
+          $ref: '#/components/schemas/Encounter'
