@@ -51,6 +51,15 @@ const pickAllowedFields = (body, allowedFields = allowedEntryUpdateFields) => {
   return Object.fromEntries(Object.entries(body).filter(([field]) => allowedFields.includes(field)));
 };
 
+const recalculateInitiativeTotal = (entry) => {
+  if (entry.initiativeRoll === null || entry.initiativeRoll === undefined) {
+    entry.initiativeTotal = null;
+    return;
+  }
+
+  entry.initiativeTotal = entry.initiativeRoll + (entry.initiativeBonus ?? 0);
+};
+
 const findEncounterEntry = async (encounterId, entryId, userId) => {
   const encounter = await Encounter.findOne({
     _id: encounterId,
@@ -145,7 +154,7 @@ const buildEntrySnapshot = ({
   status,
   notes,
 }) => {
-  return {
+  const entry = {
     characterId,
     name,
     type,
@@ -161,6 +170,10 @@ const buildEntrySnapshot = ({
     status,
     notes,
   };
+
+  recalculateInitiativeTotal(entry);
+
+  return entry;
 };
 
 router.post("/from-character", validateEncounterId, async (req, res) => {
@@ -562,6 +575,11 @@ router.patch("/:entryId", validateEncounterId, validateEntryId, async (req, res)
     }
 
     entry.set(updates);
+
+    if ("initiativeRoll" in updates || "initiativeBonus" in updates) {
+      recalculateInitiativeTotal(entry);
+    }
+
     await encounter.save();
 
     res.status(200).json({ entry, encounter });
