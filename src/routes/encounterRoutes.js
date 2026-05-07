@@ -37,11 +37,13 @@ const findUserEncounter = (encounterId, userId) => {
   });
 };
 
-const isRemovedEntry = (entry) => entry.status === "removed";
+const isTurnEligibleEntry = (entry) => {
+  return entry.status !== "removed" && entry.status !== "dead";
+};
 
 const getTurnEntryIndexes = (encounter) => {
   return encounter.entries.reduce((indexes, entry, index) => {
-    if (!isRemovedEntry(entry)) {
+    if (isTurnEligibleEntry(entry)) {
       indexes.push(index);
     }
 
@@ -60,7 +62,7 @@ const getRequiredTurnEntryIndexes = (encounter, res) => {
   const turnEntryIndexes = getTurnEntryIndexes(encounter);
 
   if (turnEntryIndexes.length === 0) {
-    res.status(400).json({ message: "Encounter must have at least one non-removed entry" });
+    res.status(400).json({ message: "Encounter must have at least one turn-eligible entry" });
     return null;
   }
 
@@ -195,15 +197,18 @@ router.post("/:encounterId/roll-initiative", validateEncounterId, async (req, re
     }
 
     encounter.entries.sort((firstEntry, secondEntry) => {
-      if (isRemovedEntry(firstEntry) && isRemovedEntry(secondEntry)) {
+      const firstEntryIsEligible = isTurnEligibleEntry(firstEntry);
+      const secondEntryIsEligible = isTurnEligibleEntry(secondEntry);
+
+      if (!firstEntryIsEligible && !secondEntryIsEligible) {
         return 0;
       }
 
-      if (isRemovedEntry(firstEntry)) {
+      if (!firstEntryIsEligible) {
         return 1;
       }
 
-      if (isRemovedEntry(secondEntry)) {
+      if (!secondEntryIsEligible) {
         return -1;
       }
 
@@ -358,7 +363,7 @@ router.patch("/:encounterId/turns/current", validateEncounterId, async (req, res
       const parsedTurnIndex = parseNonNegativeInteger(currentTurnIndex);
 
       if (parsedTurnIndex === null || !turnEntryIndexes.includes(parsedTurnIndex)) {
-        return res.status(400).json({ message: "currentTurnIndex must point to a non-removed entry" });
+        return res.status(400).json({ message: "currentTurnIndex must point to a turn-eligible entry" });
       }
 
       encounter.currentTurnIndex = parsedTurnIndex;
@@ -376,7 +381,7 @@ router.patch("/:encounterId/turns/current", validateEncounterId, async (req, res
       }
 
       if (!turnEntryIndexes.includes(entryIndex)) {
-        return res.status(400).json({ message: "entryId must point to a non-removed entry" });
+        return res.status(400).json({ message: "entryId must point to a turn-eligible entry" });
       }
 
       encounter.currentTurnIndex = entryIndex;
