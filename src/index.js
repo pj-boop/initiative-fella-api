@@ -12,9 +12,17 @@ import protectRoute from "./middleware/auth.middleware.js";
 
 import { connectDB } from "./lib/db.js";
 
+const requiredEnv = ["MONGO_URI", "JWT_SECRET"];
+
+for (const key of requiredEnv) {
+  if (!process.env[key]) {
+    console.error(`Missing required environment variable: ${key}`);
+    process.exit(1);
+  }
+}
+
 const app = express();
 const PORT = process.env.PORT || 3000;
-
 
 app.use(cors());
 // // for production
@@ -39,6 +47,16 @@ app.get("/", (req, res) => {
 
 app.get("/health", (req, res) => {
   res.json({ status: "ok" });
+});
+
+app.use((error, req, res, next) => {
+  console.error(error);
+
+  if (error.name === "ValidationError") {
+    return res.status(400).json({ message: error.message });
+  }
+
+  return res.status(500).json({ message: "Internal server error" });
 });
 
 // if (process.env.NODE_ENV === "production") {
