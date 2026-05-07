@@ -1,5 +1,26 @@
 import mongoose from "mongoose";
 
+const integerValidator = {
+  validator: Number.isInteger,
+  message: "{PATH} must be an integer",
+};
+
+const consumableUsesAreIntegers = {
+  validator: (consumables) => {
+    return consumables.every((consumable) => {
+      if (!consumable || typeof consumable !== "object") {
+        return true;
+      }
+
+      return ["maxUses", "currentUses"].every((field) => {
+        const value = consumable[field];
+        return value === undefined || value === null || Number.isInteger(Number(value));
+      });
+    });
+  },
+  message: "consumable maxUses and currentUses must be integers",
+};
+
 const characterSchema = new mongoose.Schema(
   {
     user: {
@@ -27,17 +48,20 @@ const characterSchema = new mongoose.Schema(
       type: Number,
       required: true,
       min: 0,
+      validate: integerValidator,
     },
 
     armorClass: {
       type: Number,
       default: 10,
       min: 0,
+      validate: integerValidator,
     },
 
     initiativeBonus: {
       type: Number,
       default: 0,
+      validate: integerValidator,
     },
 
     stats: {
@@ -48,6 +72,7 @@ const characterSchema = new mongoose.Schema(
     consumables: {
       type: [mongoose.Schema.Types.Mixed],
       default: [],
+      validate: consumableUsesAreIntegers,
     },
 
     notes: {

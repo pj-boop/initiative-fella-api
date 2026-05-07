@@ -113,7 +113,7 @@ const findConsumableOrRespond = async (req, res) => {
 const getNonNegativeAmount = (amount) => {
   const parsedAmount = Number(amount);
 
-  if (!Number.isFinite(parsedAmount) || parsedAmount < 0) {
+  if (!Number.isInteger(parsedAmount) || parsedAmount < 0) {
     return null;
   }
 
@@ -123,7 +123,7 @@ const getNonNegativeAmount = (amount) => {
 const getPositiveAmount = (amount) => {
   const parsedAmount = Number(amount);
 
-  if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
+  if (!Number.isInteger(parsedAmount) || parsedAmount <= 0) {
     return null;
   }
 
@@ -273,7 +273,7 @@ router.post("/:entryId/damage", validateEncounterId, validateEntryId, async (req
     const amount = getPositiveAmount(req.body.amount);
 
     if (!amount) {
-      return res.status(400).json({ message: "amount must be a positive number" });
+      return res.status(400).json({ message: "amount must be a positive integer" });
     }
 
     const result = await findEntryOrRespond(req, res);
@@ -310,7 +310,7 @@ router.post("/:entryId/heal", validateEncounterId, validateEntryId, async (req, 
     const amount = getPositiveAmount(req.body.amount);
 
     if (!amount) {
-      return res.status(400).json({ message: "amount must be a positive number" });
+      return res.status(400).json({ message: "amount must be a positive integer" });
     }
 
     const result = await findEntryOrRespond(req, res);
@@ -340,10 +340,10 @@ router.post("/:entryId/heal", validateEncounterId, validateEntryId, async (req, 
 
 router.post("/:entryId/temp-hp", validateEncounterId, validateEntryId, async (req, res) => {
   try {
-    const amount = Number(req.body.amount);
+    const amount = getNonNegativeAmount(req.body.amount);
 
-    if (!Number.isFinite(amount) || amount < 0) {
-      return res.status(400).json({ message: "amount must be a non-negative number" });
+    if (amount === null) {
+      return res.status(400).json({ message: "amount must be a non-negative integer" });
     }
 
     const result = await findEntryOrRespond(req, res);
@@ -428,7 +428,7 @@ router.post("/:entryId/consumables", validateEncounterId, validateEntryId, async
     const parsedCurrentUses = getNonNegativeAmount(currentUses);
 
     if (parsedMaxUses === null || parsedCurrentUses === null) {
-      return res.status(400).json({ message: "maxUses and currentUses must be non-negative numbers" });
+      return res.status(400).json({ message: "maxUses and currentUses must be non-negative integers" });
     }
 
     if (parsedCurrentUses > parsedMaxUses) {
