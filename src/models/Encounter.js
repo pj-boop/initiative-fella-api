@@ -1,5 +1,15 @@
 import mongoose from "mongoose";
 
+const integerValidator = {
+  validator: Number.isInteger,
+  message: "{PATH} must be an integer",
+};
+
+const nullableIntegerValidator = {
+  validator: (value) => value === null || Number.isInteger(value),
+  message: "{PATH} must be an integer",
+};
+
 const initiativeEntryConsumableSchema = new mongoose.Schema(
   {
     name: {
@@ -11,11 +21,13 @@ const initiativeEntryConsumableSchema = new mongoose.Schema(
       type: Number,
       required: true,
       min: 0,
+      validate: integerValidator,
     },
     currentUses: {
       type: Number,
       required: true,
       min: 0,
+      validate: integerValidator,
     },
     resetOn: {
       type: String,
@@ -53,11 +65,13 @@ const initiativeEntrySchema = new mongoose.Schema(
       type: Number,
       required: true,
       min: 0,
+      validate: integerValidator,
     },
     currentHp: {
       type: Number,
       required: true,
       min: 0,
+      validate: integerValidator,
       default: function () {
         return this.maxHp;
       },
@@ -66,19 +80,23 @@ const initiativeEntrySchema = new mongoose.Schema(
       type: Number,
       default: 0,
       min: 0,
+      validate: integerValidator,
     },
     armorClass: {
       type: Number,
       default: 10,
       min: 0,
+      validate: integerValidator,
     },
     initiativeBonus: {
       type: Number,
       default: 0,
+      validate: integerValidator,
     },
     initiativeRoll: {
       type: Number,
       default: null,
+      validate: nullableIntegerValidator,
     },
     initiativeTotal: {
       type: Number,
@@ -136,6 +154,7 @@ const encounterSchema = new mongoose.Schema(
       type: Number,
       default: 1,
       min: 1,
+      validate: integerValidator,
     },
     currentTurnIndex: {
       type: Number,
