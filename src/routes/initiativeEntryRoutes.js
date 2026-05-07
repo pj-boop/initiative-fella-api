@@ -169,8 +169,15 @@ router.post("/from-character", validateEncounterId, async (req, res) => {
     }
 
     const [encounter, character] = await Promise.all([
-      Encounter.findById(req.params.encounterId),
-      Character.findById(characterId),
+      Encounter.findOne({
+        _id: req.params.encounterId,
+        user: req.user._id,
+      }),
+    
+      Character.findOne({
+        _id: characterId,
+        user: req.user._id,
+      }),
     ]);
 
     if (!encounter) {

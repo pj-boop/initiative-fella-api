@@ -50,6 +50,7 @@ router.post("/", async (req, res) => {
     }
 
     const encounter = new Encounter({
+      user: req.user._id,
       name,
       notes,
     });

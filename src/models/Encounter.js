@@ -19,9 +19,8 @@ const initiativeEntryConsumableSchema = new mongoose.Schema(
     },
     resetOn: {
       type: String,
+      enum: ["shortRest", "longRest", "never"],
       default: "never",
-      trim: true,
-      lowercase: true,
     },
     notes: {
       type: String,
@@ -78,7 +77,11 @@ const initiativeEntrySchema = new mongoose.Schema(
     },
     initiativeRoll: {
       type: Number,
-      default: 0,
+      default: null,
+    },
+    initiativeTotal: {
+      type: Number,
+      default: null,
     },
     stats: {
       type: mongoose.Schema.Types.Mixed,
@@ -94,9 +97,10 @@ const initiativeEntrySchema = new mongoose.Schema(
     },
     status: {
       type: String,
+      enum: ["active", "down", "dead", "removed"],
       default: "active",
-      trim: true,
       lowercase: true,
+      trim: true,
     },
     notes: {
       type: String,
@@ -109,6 +113,12 @@ const initiativeEntrySchema = new mongoose.Schema(
 
 const encounterSchema = new mongoose.Schema(
   {
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+      index: true,
+    },
     name: {
       type: String,
       required: true,
@@ -116,9 +126,10 @@ const encounterSchema = new mongoose.Schema(
     },
     status: {
       type: String,
+      enum: ["draft", "active", "completed"],
       default: "draft",
-      trim: true,
       lowercase: true,
+      trim: true,
     },
     round: {
       type: Number,

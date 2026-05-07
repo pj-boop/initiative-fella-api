@@ -53,6 +53,7 @@ router.post("/", async (req, res) => {
     }
 
     const character = new Character({
+      user: req.user._id,
       name,
       type,
       maxHp,
@@ -79,7 +80,10 @@ router.post("/", async (req, res) => {
 
 router.get("/:characterId", validateCharacterId, async (req, res) => {
   try {
-    const character = await Character.findById(req.params.characterId);
+    const character = await Character.findOne({
+      _id: req.params.characterId,
+      user: req.user._id,
+    });
 
     if (!character) {
       return res.status(404).json({ message: "Character not found" });
