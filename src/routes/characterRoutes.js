@@ -35,7 +35,10 @@ const buildCharacterFilters = (query) => {
 
 router.get("/", async (req, res) => {
   try {
-    const characters = await Character.find(buildCharacterFilters(req.query)).sort({ createdAt: -1 });
+    const characters = await Character.find({
+      user: req.user._id,
+      ...buildCharacterFilters(req.query),
+    }).sort({ createdAt: -1 });
 
     res.status(200).json(characters);
   } catch (error) {
@@ -106,10 +109,17 @@ router.patch("/:characterId", validateCharacterId, async (req, res) => {
       return res.status(400).json({ message: "No valid character fields provided" });
     }
 
-    const character = await Character.findByIdAndUpdate(req.params.characterId, updates, {
-      new: true,
-      runValidators: true,
-    });
+    const character = await Character.findOneAndUpdate(
+      {
+        _id: req.params.characterId,
+        user: req.user._id,
+      },
+      updates,
+      {
+        new: true,
+        runValidators: true,
+      }
+    );
 
     if (!character) {
       return res.status(404).json({ message: "Character not found" });
@@ -129,7 +139,10 @@ router.patch("/:characterId", validateCharacterId, async (req, res) => {
 
 router.delete("/:characterId", validateCharacterId, async (req, res) => {
   try {
-    const character = await Character.findByIdAndDelete(req.params.characterId);
+    const character = await Character.findOneAndDelete({
+      _id: req.params.characterId,
+      user: req.user._id,
+    });
 
     if (!character) {
       return res.status(404).json({ message: "Character not found" });
