@@ -300,6 +300,13 @@ export const updateConsumable = async (req, res) => {
   const { encounter, entry, consumable } = result;
 
   consumable.set(updates);
+
+  if (consumable.currentUses > consumable.maxUses) {
+    return res.status(400).json({
+      message: "currentUses cannot exceed maxUses",
+    });
+  }
+
   await encounter.save();
 
   return res.status(200).json({ consumable, entry, encounter });
