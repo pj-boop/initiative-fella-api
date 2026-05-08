@@ -11,6 +11,7 @@ import {
   setCurrentTurn,
   startEncounter as startEncounterTurnOrder,
 } from "../services/initiativeService.js";
+import { addDefaultPartyEntries } from "../services/encounterEntryService.js";
 import { pickAllowedFields } from "../utils/pickAllowedFields.js";
 
 const allowedEncounterUpdateFields = ["name", "status", "notes"];
@@ -90,7 +91,7 @@ export const getEncounters = async (req, res) => {
 };
 
 export const createEncounter = async (req, res) => {
-  const { campaignId, name, notes } = req.body;
+  const { campaignId, name, notes, autoAddParty } = req.body;
 
   if (!campaignId || !name) {
     return res.status(400).json({ message: "campaignId and name are required" });
@@ -109,9 +110,29 @@ export const createEncounter = async (req, res) => {
     notes,
   });
 
+  if (autoAddParty === true) {
+    await addDefaultPartyEntries({ encounter, campaign, userId: req.user._id });
+  }
+
   await encounter.save();
 
   return res.status(201).json(encounter);
+};
+
+export const addPartyEntries = async (req, res) => {
+  const encounter = await findEncounterOrRespond(req, res);
+  if (!encounter) return;
+
+  const campaign = await findOwnedCampaign(encounter.campaign, req.user._id);
+
+  if (!campaign) {
+    return res.status(404).json({ message: "Campaign not found" });
+  }
+
+  const entries = await addDefaultPartyEntries({ encounter, campaign, userId: req.user._id });
+  await encounter.save();
+
+  return res.status(201).json({ entries, encounter });
 };
 
 export const rollInitiative = async (req, res) => {

@@ -14,6 +14,7 @@ import {
   updateTempHp,
   useEntryConsumable,
 } from "../controllers/initiativeEntryController.js";
+import { addPartyEntries } from "../controllers/encounterController.js";
 import asyncHandler from "../middleware/asyncHandler.middleware.js";
 import validateObjectId from "../middleware/validateObjectId.middleware.js";
 
@@ -25,6 +26,7 @@ const validateConsumableId = validateObjectId("consumableId", "Invalid consumabl
 router.use(validateEncounterId);
 
 router.post("/from-character", asyncHandler(addFromCharacter));
+router.post("/from-party", asyncHandler(addPartyEntries));
 router.post("/custom", asyncHandler(addCustomEntry));
 router.post("/:entryId/damage", validateEntryId, asyncHandler(damageEntry));
 router.post("/:entryId/heal", validateEntryId, asyncHandler(healEntry));
