@@ -9,6 +9,10 @@ export type RegisterRequest = Schemas["RegisterRequest"];
 export type AuthResponse = Schemas["AuthResponse"];
 export type AuthUser = Schemas["AuthUser"];
 
+export type Campaign = Schemas["Campaign"];
+export type CreateCampaignRequest = Schemas["CreateCampaignRequest"];
+export type UpdateCampaignRequest = Schemas["UpdateCampaignRequest"];
+
 export type Character = Schemas["Character"];
 export type CreateCharacterRequest = Schemas["CreateCharacterRequest"];
 export type UpdateCharacterRequest = Schemas["UpdateCharacterRequest"];

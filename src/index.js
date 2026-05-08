@@ -4,6 +4,7 @@ import "dotenv/config";
 // import job from "./lib/cron.js";
 
 import authRoutes from "./routes/authRoutes.js";
+import campaignRoutes from "./routes/campaignRoutes.js";
 import characterRoutes from "./routes/characterRoutes.js";
 import encounterRoutes from "./routes/encounterRoutes.js";
 import initiativeEntryRoutes from "./routes/initiativeEntryRoutes.js";
@@ -37,6 +38,7 @@ app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 app.use("/api/auth", authRoutes);
 
+app.use("/api/campaigns", protectRoute, campaignRoutes);
 app.use("/api/characters", protectRoute, characterRoutes);
 app.use("/api/encounters/:encounterId/entries", protectRoute, initiativeEntryRoutes);
 app.use("/api/encounters", protectRoute, encounterRoutes);

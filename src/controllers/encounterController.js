@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import Campaign from "../models/Campaign.js";
 import Encounter from "../models/Encounter.js";
 import {
   advanceTurn,
@@ -21,12 +22,36 @@ const buildEncounterFilters = (query) => {
     filters.status = query.status.toLowerCase();
   }
 
+  if (query.campaignId) {
+    filters.campaign = query.campaignId;
+  }
+
   return filters;
 };
 
 const findUserEncounter = (encounterId, userId) => {
   return Encounter.findOne({
     _id: encounterId,
+    user: userId,
+  });
+};
+
+const validateOptionalCampaignQuery = (req, res) => {
+  if (req.query.campaignId && !mongoose.isValidObjectId(req.query.campaignId)) {
+    res.status(400).json({ message: "Invalid campaign id" });
+    return false;
+  }
+
+  return true;
+};
+
+const findOwnedCampaign = async (campaignId, userId) => {
+  if (!mongoose.isValidObjectId(campaignId)) {
+    return null;
+  }
+
+  return Campaign.findOne({
+    _id: campaignId,
     user: userId,
   });
 };
@@ -54,6 +79,8 @@ const findEncounterOrRespond = async (req, res) => {
 };
 
 export const getEncounters = async (req, res) => {
+  if (!validateOptionalCampaignQuery(req, res)) return;
+
   const encounters = await Encounter.find({
     user: req.user._id,
     ...buildEncounterFilters(req.query),
@@ -63,14 +90,21 @@ export const getEncounters = async (req, res) => {
 };
 
 export const createEncounter = async (req, res) => {
-  const { name, notes } = req.body;
+  const { campaignId, name, notes } = req.body;
 
-  if (!name) {
-    return res.status(400).json({ message: "name is required" });
+  if (!campaignId || !name) {
+    return res.status(400).json({ message: "campaignId and name are required" });
+  }
+
+  const campaign = await findOwnedCampaign(campaignId, req.user._id);
+
+  if (!campaign) {
+    return res.status(404).json({ message: "Campaign not found" });
   }
 
   const encounter = new Encounter({
     user: req.user._id,
+    campaign: campaign._id,
     name,
     notes,
   });

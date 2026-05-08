@@ -139,20 +139,20 @@ export const addFromCharacter = async (req, res) => {
     return res.status(400).json({ message: "Invalid character id" });
   }
 
-  const [encounter, character] = await Promise.all([
-    Encounter.findOne({
-      _id: req.params.encounterId,
-      user: req.user._id,
-    }),
-    Character.findOne({
-      _id: characterId,
-      user: req.user._id,
-    }),
-  ]);
+  const encounter = await Encounter.findOne({
+    _id: req.params.encounterId,
+    user: req.user._id,
+  });
 
   if (!encounter) {
     return res.status(404).json({ message: "Encounter not found" });
   }
+
+  const character = await Character.findOne({
+    _id: characterId,
+    user: req.user._id,
+    campaign: encounter.campaign,
+  });
 
   if (!character) {
     return res.status(404).json({ message: "Character not found" });
