@@ -151,6 +151,16 @@ export const rollInitiative = async (req, res) => {
     return res.status(400).json({ message: error });
   }
 
+  const validEntryIds = new Set(encounter.entries.map((entry) => entry._id.toString()));
+
+  for (const entryId of manualInitiativesByEntryId.keys()) {
+    if (!validEntryIds.has(entryId)) {
+      return res.status(400).json({
+        message: "manualInitiatives contains an unknown entryId",
+      });
+    }
+  }
+
   const rollsByEntryId = getProvidedInitiativeRolls(req.body?.rollsByEntryId);
   const rollMissing = req.body?.rollMissing !== false;
   const rerollExisting = req.body?.rerollExisting === true;
