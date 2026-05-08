@@ -709,7 +709,7 @@ export interface paths {
         put?: never;
         /**
          * Roll initiative for an encounter
-         * @description Rolls initiative for turn-eligible entries. Optional provided rolls must be integers from 1 to 20.
+         * @description Applies provided manual initiative totals, rolls blank or missing entries when requested, and keeps existing totals unless rerollExisting is true. Optional provided rolls must be integers from 1 to 20.
          */
         post: {
             parameters: {
@@ -1831,7 +1831,30 @@ export interface components {
         };
         RollInitiativeRequest: {
             /**
-             * @description Map of initiative entry ids to provided d20 rolls.
+             * @description Manual final initiative totals by entry. Entries with blank or missing initiativeTotal values are treated as missing and may be rolled by the backend.
+             * @example [
+             *       {
+             *         "entryId": "65f1c2a3b4d5e6f7890abc12",
+             *         "initiativeTotal": 18
+             *       },
+             *       {
+             *         "entryId": "65f1c2a3b4d5e6f7890abc13",
+             *         "initiativeTotal": 12
+             *       }
+             *     ]
+             */
+            manualInitiatives?: {
+                entryId: components["schemas"]["ObjectId"];
+                /** @description Final initiative total to use for the entry, without adding initiative bonus. */
+                initiativeTotal?: number;
+            }[];
+            /** @description Defaults to true. When true, roll initiative for entries that do not have a manual or existing initiative total. */
+            rollMissing?: boolean;
+            /** @description Defaults to false. When true, reroll entries with existing initiative totals unless a manual total is provided. */
+            rerollExisting?: boolean;
+            /**
+             * @deprecated
+             * @description Legacy map of initiative entry ids to provided d20 rolls for backend-rolled entries.
              * @example {
              *       "65f1c2a3b4d5e6f7890abc12": 17
              *     }

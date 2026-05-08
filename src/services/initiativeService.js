@@ -47,19 +47,95 @@ export const getProvidedInitiativeRolls = (rollsByEntryId) => {
   return rollsByEntryId;
 };
 
-export const rollInitiative = (encounter, rollsByEntryId) => {
+export const getManualInitiativesByEntryId = (manualInitiatives) => {
+  if (manualInitiatives === undefined || manualInitiatives === null) {
+    return { manualInitiativesByEntryId: new Map() };
+  }
+
+  if (!Array.isArray(manualInitiatives)) {
+    return { error: "manualInitiatives must be an array" };
+  }
+
+  const manualInitiativesByEntryId = new Map();
+
+  for (const manualInitiative of manualInitiatives) {
+    if (
+      !manualInitiative ||
+      typeof manualInitiative !== "object" ||
+      Array.isArray(manualInitiative)
+    ) {
+      return { error: "manualInitiatives entries must be objects" };
+    }
+
+    const { entryId, initiativeTotal } = manualInitiative;
+
+    if (typeof entryId !== "string" || entryId.trim() === "") {
+      return { error: "manualInitiatives entryId is required" };
+    }
+
+    if (initiativeTotal === undefined || initiativeTotal === null || initiativeTotal === "") {
+      continue;
+    }
+
+    const parsedTotal = Number(initiativeTotal);
+
+    if (!Number.isInteger(parsedTotal)) {
+      return { error: "manualInitiatives initiativeTotal must be an integer" };
+    }
+
+    manualInitiativesByEntryId.set(entryId, parsedTotal);
+  }
+
+  return { manualInitiativesByEntryId };
+};
+
+const applyInitiativeRoll = (entry, providedRoll) => {
+  const roll = getInitiativeRoll(providedRoll);
+
+  if (roll === null) {
+    return false;
+  }
+
+  entry.initiativeRoll = roll;
+  entry.initiativeTotal = roll + (entry.initiativeBonus ?? 0);
+  return true;
+};
+
+export const rollInitiative = (
+  encounter,
+  {
+    manualInitiativesByEntryId = new Map(),
+    rollMissing = true,
+    rerollExisting = false,
+    rollsByEntryId = {},
+  } = {},
+) => {
   const turnEntryIndexes = getTurnEntryIndexes(encounter);
 
   for (const entryIndex of turnEntryIndexes) {
     const entry = encounter.entries[entryIndex];
-    const roll = getInitiativeRoll(rollsByEntryId[entry._id.toString()]);
+    const entryId = entry._id.toString();
 
-    if (roll === null) {
-      return false;
+    if (manualInitiativesByEntryId.has(entryId)) {
+      entry.initiativeRoll = null;
+      entry.initiativeTotal = manualInitiativesByEntryId.get(entryId);
+      continue;
     }
 
-    entry.initiativeRoll = roll;
-    entry.initiativeTotal = roll + (entry.initiativeBonus ?? 0);
+    const hasExistingInitiative =
+      entry.initiativeTotal !== null && entry.initiativeTotal !== undefined;
+
+    if (hasExistingInitiative && !rerollExisting) {
+      continue;
+    }
+
+    if (!hasExistingInitiative && !rollMissing) {
+      continue;
+    }
+
+    if (!applyInitiativeRoll(entry, rollsByEntryId[entryId])) {
+      return false;
+    }
   }
 
   encounter.entries.sort((firstEntry, secondEntry) => {

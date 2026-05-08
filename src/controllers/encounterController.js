@@ -4,6 +4,7 @@ import Encounter from "../models/Encounter.js";
 import {
   advanceTurn,
   buildTurnResponse,
+  getManualInitiativesByEntryId,
   getProvidedInitiativeRolls,
   getTurnEntryIndexes,
   reverseTurn,
@@ -142,9 +143,26 @@ export const rollInitiative = async (req, res) => {
   const turnEntryIndexes = getRequiredTurnEntryIndexes(encounter, res);
   if (!turnEntryIndexes) return;
 
-  const rollsByEntryId = getProvidedInitiativeRolls(req.body?.rollsByEntryId);
+  const { manualInitiativesByEntryId, error } = getManualInitiativesByEntryId(
+    req.body?.manualInitiatives,
+  );
 
-  if (!rollEncounterInitiative(encounter, rollsByEntryId)) {
+  if (error) {
+    return res.status(400).json({ message: error });
+  }
+
+  const rollsByEntryId = getProvidedInitiativeRolls(req.body?.rollsByEntryId);
+  const rollMissing = req.body?.rollMissing !== false;
+  const rerollExisting = req.body?.rerollExisting === true;
+
+  if (
+    !rollEncounterInitiative(encounter, {
+      manualInitiativesByEntryId,
+      rollMissing,
+      rerollExisting,
+      rollsByEntryId,
+    })
+  ) {
     return res.status(400).json({ message: "initiative rolls must be integers from 1 to 20" });
   }
 
