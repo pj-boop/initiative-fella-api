@@ -10,6 +10,11 @@ import {
   setTempHp,
 } from "../services/combatService.js";
 import { useConsumable } from "../services/consumableService.js";
+import {
+  buildEntrySnapshot,
+  buildEntrySnapshotFromCharacter,
+  recalculateInitiativeTotal,
+} from "../services/encounterEntryService.js";
 import { parseNonNegativeInt, parsePositiveInt } from "../utils/numbers.js";
 import { pickAllowedFields } from "../utils/pickAllowedFields.js";
 
@@ -30,15 +35,6 @@ const allowedEntryUpdateFields = [
 ];
 
 const allowedConsumableUpdateFields = ["name", "maxUses", "currentUses", "resetOn", "notes"];
-
-const recalculateInitiativeTotal = (entry) => {
-  if (entry.initiativeRoll === null || entry.initiativeRoll === undefined) {
-    entry.initiativeTotal = null;
-    return;
-  }
-
-  entry.initiativeTotal = entry.initiativeRoll + (entry.initiativeBonus ?? 0);
-};
 
 const findEncounterEntry = async (encounterId, entryId, userId) => {
   const encounter = await Encounter.findOne({
@@ -90,44 +86,6 @@ const findConsumableOrRespond = async (req, res) => {
   return { ...result, consumable };
 };
 
-const buildEntrySnapshot = ({
-  characterId,
-  name,
-  type,
-  maxHp,
-  currentHp,
-  tempHp,
-  armorClass,
-  initiativeBonus,
-  initiativeRoll,
-  stats,
-  consumables,
-  conditions,
-  status,
-  notes,
-}) => {
-  const entry = {
-    characterId,
-    name,
-    type,
-    maxHp,
-    currentHp: currentHp ?? maxHp,
-    tempHp,
-    armorClass,
-    initiativeBonus,
-    initiativeRoll,
-    stats,
-    consumables,
-    conditions,
-    status,
-    notes,
-  };
-
-  recalculateInitiativeTotal(entry);
-
-  return entry;
-};
-
 export const addFromCharacter = async (req, res) => {
   const { characterId } = req.body;
 
@@ -158,20 +116,7 @@ export const addFromCharacter = async (req, res) => {
     return res.status(404).json({ message: "Character not found" });
   }
 
-  encounter.entries.push(
-    buildEntrySnapshot({
-      characterId: character._id,
-      name: character.name,
-      type: character.type,
-      maxHp: character.maxHp,
-      currentHp: character.maxHp,
-      armorClass: character.armorClass,
-      initiativeBonus: character.initiativeBonus,
-      stats: character.stats,
-      consumables: character.consumables,
-      notes: character.notes,
-    })
-  );
+  encounter.entries.push(buildEntrySnapshotFromCharacter(character));
   await encounter.save();
 
   return res.status(201).json({ entry: encounter.entries.at(-1), encounter });

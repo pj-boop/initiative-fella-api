@@ -601,6 +601,36 @@ paths:
           $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalServerError'
+  /api/encounters/{encounterId}/entries/from-party:
+    parameters:
+      - $ref: '#/components/parameters/EncounterId'
+    post:
+      tags: [Initiative Entries]
+      summary: Add default party characters to an encounter
+      description: Adds entries for the encounter campaign's default party characters, skipping any character already present by entry.characterId.
+      responses:
+        '201':
+          description: Default party entries added.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [entries, encounter]
+                properties:
+                  entries:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/InitiativeEntry'
+                  encounter:
+                    $ref: '#/components/schemas/Encounter'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
   /api/encounters/{encounterId}/entries/custom:
     parameters:
       - $ref: '#/components/parameters/EncounterId'
@@ -1310,6 +1340,10 @@ components:
         notes:
           type: string
           default: ''
+        autoAddParty:
+          type: boolean
+          default: false
+          description: When true, creates initiative entries from the campaign's defaultPartyCharacterIds.
     UpdateEncounterRequest:
       type: object
       minProperties: 1

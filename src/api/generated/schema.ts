@@ -965,6 +965,56 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/encounters/{encounterId}/entries/from-party": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                encounterId: components["parameters"]["EncounterId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Add default party characters to an encounter
+         * @description Adds entries for the encounter campaign's default party characters, skipping any character already present by entry.characterId.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    encounterId: components["parameters"]["EncounterId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default party entries added. */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            entries: components["schemas"]["InitiativeEntry"][];
+                            encounter: components["schemas"]["Encounter"];
+                        };
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                401: components["responses"]["Unauthorized"];
+                404: components["responses"]["NotFound"];
+                500: components["responses"]["InternalServerError"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/encounters/{encounterId}/entries/custom": {
         parameters: {
             query?: never;
@@ -1659,6 +1709,11 @@ export interface components {
             name: string;
             /** @default  */
             notes: string;
+            /**
+             * @description When true, creates initiative entries from the campaign's defaultPartyCharacterIds.
+             * @default false
+             */
+            autoAddParty: boolean;
         };
         UpdateEncounterRequest: {
             name?: string;
