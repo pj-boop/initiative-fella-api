@@ -12,7 +12,7 @@ import {
 import { useConsumable } from "../services/consumableService.js";
 import {
   buildEntrySnapshot,
-  buildEntrySnapshotFromCharacter,
+  buildEntryFromCharacter,
   recalculateInitiativeTotal,
 } from "../services/encounterEntryService.js";
 import { parseNonNegativeInt, parsePositiveInt } from "../utils/numbers.js";
@@ -116,7 +116,7 @@ export const addFromCharacter = async (req, res) => {
     return res.status(404).json({ message: "Character not found" });
   }
 
-  encounter.entries.push(buildEntrySnapshotFromCharacter(character));
+  encounter.entries.push(buildEntryFromCharacter(character));
   await encounter.save();
 
   return res.status(201).json({ entry: encounter.entries.at(-1), encounter });
