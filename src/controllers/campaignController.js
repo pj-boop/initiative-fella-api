@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import Campaign from "../models/Campaign.js";
 import Character from "../models/Character.js";
+import Encounter from "../models/Encounter.js";
 import { pickAllowedFields } from "../utils/pickAllowedFields.js";
 
 const allowedCampaignUpdateFields = ["name", "notes", "defaultPartyCharacterIds"];
@@ -123,7 +124,7 @@ export const updateCampaign = async (req, res) => {
 };
 
 export const deleteCampaign = async (req, res) => {
-  const campaign = await Campaign.findOneAndDelete({
+  const campaign = await Campaign.findOne({
     _id: req.params.campaignId,
     user: req.user._id,
   });
@@ -132,7 +133,22 @@ export const deleteCampaign = async (req, res) => {
     return res.status(404).json({ message: "Campaign not found" });
   }
 
-  return res.status(200).json({ message: "Campaign deleted", campaign });
+  await Promise.all([
+    Character.deleteMany({
+      user: req.user._id,
+      campaign: campaign._id,
+    }),
+    Encounter.deleteMany({
+      user: req.user._id,
+      campaign: campaign._id,
+    }),
+    Campaign.deleteOne({
+      _id: campaign._id,
+      user: req.user._id,
+    }),
+  ]);
+
+  return res.status(200).json({ message: "Campaign and related data deleted", campaign });
 };
 
 export const addPartyCharacter = async (req, res) => {

@@ -215,14 +215,14 @@ export interface paths {
             };
             requestBody?: never;
             responses: {
-                /** @description Campaign deleted. */
+                /** @description Campaign and related character/encounter data deleted. */
                 200: {
                     headers: {
                         [name: string]: unknown;
                     };
                     content: {
                         "application/json": {
-                            /** @example Campaign deleted */
+                            /** @example Campaign and related data deleted */
                             message: string;
                             campaign: components["schemas"]["Campaign"];
                         };
