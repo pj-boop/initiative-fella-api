@@ -138,6 +138,12 @@ const encounterSchema = new mongoose.Schema(
       required: true,
       index: true,
     },
+    campaign: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Campaign",
+      required: true,
+      index: true,
+    },
     name: {
       type: String,
       required: true,

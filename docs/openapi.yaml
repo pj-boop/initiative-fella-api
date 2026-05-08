@@ -13,6 +13,8 @@ servers:
 tags:
   - name: Auth
     description: Account registration and login.
+  - name: Campaigns
+    description: Campaign records and default party membership owned by the authenticated user.
   - name: Characters
     description: Reusable character records owned by the authenticated user.
   - name: Encounters
@@ -79,6 +81,157 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '500':
           $ref: '#/components/responses/InternalServerError'
+  /api/campaigns:
+    get:
+      tags: [Campaigns]
+      summary: List campaigns
+      description: Returns the authenticated user's campaigns sorted by newest first.
+      responses:
+        '200':
+          description: Campaigns found.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Campaign'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      tags: [Campaigns]
+      summary: Create a campaign
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCampaignRequest'
+      responses:
+        '201':
+          description: Campaign created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Campaign'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/campaigns/{campaignId}:
+    parameters:
+      - $ref: '#/components/parameters/CampaignId'
+    get:
+      tags: [Campaigns]
+      summary: Get a campaign
+      responses:
+        '200':
+          description: Campaign found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Campaign'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    patch:
+      tags: [Campaigns]
+      summary: Update a campaign
+      description: When updating defaultPartyCharacterIds, every character must belong to the authenticated user and this campaign.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCampaignRequest'
+      responses:
+        '200':
+          description: Campaign updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Campaign'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      tags: [Campaigns]
+      summary: Delete a campaign
+      responses:
+        '200':
+          description: Campaign deleted.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [message, campaign]
+                properties:
+                  message:
+                    type: string
+                    example: Campaign deleted
+                  campaign:
+                    $ref: '#/components/schemas/Campaign'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/campaigns/{campaignId}/party/{characterId}:
+    parameters:
+      - $ref: '#/components/parameters/CampaignId'
+      - $ref: '#/components/parameters/CharacterId'
+    post:
+      tags: [Campaigns]
+      summary: Add a character to a campaign's default party
+      responses:
+        '200':
+          description: Campaign updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Campaign'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      tags: [Campaigns]
+      summary: Remove a character from a campaign's default party
+      responses:
+        '200':
+          description: Campaign updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Campaign'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
   /api/characters:
     get:
       tags: [Characters]
@@ -86,6 +239,7 @@ paths:
       description: Returns the authenticated user's characters sorted by newest first.
       parameters:
         - $ref: '#/components/parameters/CharacterTypeQuery'
+        - $ref: '#/components/parameters/CampaignIdQuery'
       responses:
         '200':
           description: Characters found.
@@ -198,6 +352,7 @@ paths:
       description: Returns the authenticated user's encounters sorted by newest first.
       parameters:
         - $ref: '#/components/parameters/EncounterStatusQuery'
+        - $ref: '#/components/parameters/CampaignIdQuery'
       responses:
         '200':
           description: Encounters found.
@@ -746,6 +901,12 @@ components:
       scheme: bearer
       bearerFormat: JWT
   parameters:
+    CampaignId:
+      name: campaignId
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/ObjectId'
     CharacterId:
       name: characterId
       in: path
@@ -770,6 +931,13 @@ components:
       required: true
       schema:
         $ref: '#/components/schemas/ObjectId'
+    CampaignIdQuery:
+      name: campaignId
+      in: query
+      required: false
+      schema:
+        $ref: '#/components/schemas/ObjectId'
+      description: Optional campaign filter.
     CharacterTypeQuery:
       name: type
       in: query
@@ -934,13 +1102,66 @@ components:
           format: password
           writeOnly: true
           example: secret123
-    Character:
+    Campaign:
       type: object
-      required: [_id, user, name, type, maxHp, armorClass, initiativeBonus, stats, consumables, notes, createdAt, updatedAt]
+      required: [_id, user, name, notes, defaultPartyCharacterIds, createdAt, updatedAt]
       properties:
         _id:
           $ref: '#/components/schemas/ObjectId'
         user:
+          $ref: '#/components/schemas/ObjectId'
+        name:
+          type: string
+          example: Storm King's Thunder
+        notes:
+          type: string
+          default: ''
+        defaultPartyCharacterIds:
+          type: array
+          default: []
+          items:
+            $ref: '#/components/schemas/ObjectId'
+        createdAt:
+          $ref: '#/components/schemas/DateTime'
+        updatedAt:
+          $ref: '#/components/schemas/DateTime'
+    CreateCampaignRequest:
+      type: object
+      required: [name]
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+        notes:
+          type: string
+          default: ''
+        defaultPartyCharacterIds:
+          type: array
+          default: []
+          items:
+            $ref: '#/components/schemas/ObjectId'
+    UpdateCampaignRequest:
+      type: object
+      minProperties: 1
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+        notes:
+          type: string
+        defaultPartyCharacterIds:
+          type: array
+          items:
+            $ref: '#/components/schemas/ObjectId'
+    Character:
+      type: object
+      required: [_id, user, campaign, name, type, maxHp, armorClass, initiativeBonus, stats, consumables, notes, createdAt, updatedAt]
+      properties:
+        _id:
+          $ref: '#/components/schemas/ObjectId'
+        user:
+          $ref: '#/components/schemas/ObjectId'
+        campaign:
           $ref: '#/components/schemas/ObjectId'
         name:
           type: string
@@ -984,9 +1205,11 @@ components:
           $ref: '#/components/schemas/DateTime'
     CreateCharacterRequest:
       type: object
-      required: [name, type, maxHp]
+      required: [campaignId, name, type, maxHp]
       additionalProperties: false
       properties:
+        campaignId:
+          $ref: '#/components/schemas/ObjectId'
         name:
           type: string
         type:
@@ -1041,11 +1264,13 @@ components:
           type: string
     Encounter:
       type: object
-      required: [_id, user, name, status, round, currentTurnIndex, entries, notes, createdAt, updatedAt]
+      required: [_id, user, campaign, name, status, round, currentTurnIndex, entries, notes, createdAt, updatedAt]
       properties:
         _id:
           $ref: '#/components/schemas/ObjectId'
         user:
+          $ref: '#/components/schemas/ObjectId'
+        campaign:
           $ref: '#/components/schemas/ObjectId'
         name:
           type: string
@@ -1074,9 +1299,11 @@ components:
           $ref: '#/components/schemas/DateTime'
     CreateEncounterRequest:
       type: object
-      required: [name]
+      required: [campaignId, name]
       additionalProperties: false
       properties:
+        campaignId:
+          $ref: '#/components/schemas/ObjectId'
         name:
           type: string
           example: Goblin Ambush

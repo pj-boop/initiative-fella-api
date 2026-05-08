@@ -30,6 +30,13 @@ const characterSchema = new mongoose.Schema(
       index: true,
     },
 
+    campaign: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Campaign",
+      required: true,
+      index: true,
+    },
+
     name: {
       type: String,
       required: true,
