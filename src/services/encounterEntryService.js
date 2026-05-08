@@ -47,7 +47,7 @@ export const buildEntrySnapshot = ({
   return entry;
 };
 
-export const buildEntrySnapshotFromCharacter = (character) => {
+export const buildEntryFromCharacter = (character) => {
   return buildEntrySnapshot({
     characterId: character._id,
     name: character.name,
@@ -114,7 +114,7 @@ export const addDefaultPartyEntries = async ({ encounter, campaign, userId }) =>
       continue;
     }
 
-    const entry = buildEntrySnapshotFromCharacter(character);
+    const entry = buildEntryFromCharacter(character);
     encounter.entries.push(entry);
     addedEntries.push(encounter.entries.at(-1));
   }
