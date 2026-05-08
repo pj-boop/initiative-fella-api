@@ -1843,7 +1843,7 @@ export interface components {
         };
         RollInitiativeRequest: {
             /**
-             * @description Manual final initiative totals by entry. Applied entries store initiativeRoll as null and initiativeSource as manual. Entries with blank or missing initiativeTotal values are treated as missing and may be rolled by the backend.
+             * @description Manual final integer initiative totals by entry. Applied entries store initiativeRoll as null and initiativeSource as manual. Values may be negative, but must be whole numbers.
              * @example [
              *       {
              *         "entryId": "65f1c2a3b4d5e6f7890abc12",
@@ -1858,7 +1858,7 @@ export interface components {
             manualInitiatives?: {
                 entryId: components["schemas"]["ObjectId"];
                 /** @description Final initiative total to use for the entry, without adding initiative bonus. */
-                initiativeTotal?: number;
+                initiativeTotal: number;
             }[];
             /** @description Defaults to true. When true, roll initiative for entries that do not have a manual or existing initiative total. */
             rollMissing?: boolean;
