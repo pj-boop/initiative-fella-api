@@ -1739,7 +1739,10 @@ export interface components {
             initiativeRoll: number | null;
             /** @default null */
             initiativeSource: ("manual" | "auto") | null;
-            /** @default null */
+            /**
+             * @description Final initiative total. Manual entries set initiativeRoll to null and initiativeSource to manual.
+             * @default null
+             */
             initiativeTotal: number | null;
             /** @default {} */
             stats: {
@@ -1770,6 +1773,11 @@ export interface components {
             initiativeBonus: number;
             /** @default null */
             initiativeRoll: number | null;
+            /**
+             * @description Provide a final manual initiative total. When set, the API stores initiativeRoll as null and initiativeSource as manual.
+             * @default null
+             */
+            initiativeTotal: number | null;
             /** @default {} */
             stats: {
                 [key: string]: unknown;
@@ -1791,6 +1799,8 @@ export interface components {
             armorClass?: number;
             initiativeBonus?: number;
             initiativeRoll?: number | null;
+            /** @description Provide a final manual initiative total. When set, the API stores initiativeRoll as null and initiativeSource as manual. */
+            initiativeTotal?: number | null;
             stats?: {
                 [key: string]: unknown;
             };
@@ -1833,7 +1843,7 @@ export interface components {
         };
         RollInitiativeRequest: {
             /**
-             * @description Manual final initiative totals by entry. Entries with blank or missing initiativeTotal values are treated as missing and may be rolled by the backend.
+             * @description Manual final initiative totals by entry. Applied entries store initiativeRoll as null and initiativeSource as manual. Entries with blank or missing initiativeTotal values are treated as missing and may be rolled by the backend.
              * @example [
              *       {
              *         "entryId": "65f1c2a3b4d5e6f7890abc12",

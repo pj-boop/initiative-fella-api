@@ -1,14 +1,55 @@
 import Character from "../models/Character.js";
 
-export const recalculateInitiativeTotal = (entry) => {
-  if (entry.initiativeRoll === null || entry.initiativeRoll === undefined) {
-    entry.initiativeSource = null;
-    entry.initiativeTotal = null;
+const clearInitiative = (entry) => {
+  entry.initiativeSource = null;
+  entry.initiativeRoll = null;
+  entry.initiativeTotal = null;
+};
+
+const applyManualInitiativeTotal = (entry) => {
+  if (
+    entry.initiativeTotal === null ||
+    entry.initiativeTotal === undefined ||
+    entry.initiativeTotal === ""
+  ) {
+    clearInitiative(entry);
+    return;
+  }
+
+  entry.initiativeSource = "manual";
+  entry.initiativeRoll = null;
+};
+
+const applyAutomaticInitiativeRoll = (entry) => {
+  if (
+    entry.initiativeRoll === null ||
+    entry.initiativeRoll === undefined ||
+    entry.initiativeRoll === ""
+  ) {
+    clearInitiative(entry);
     return;
   }
 
   entry.initiativeSource = "auto";
   entry.initiativeTotal = entry.initiativeRoll + (entry.initiativeBonus ?? 0);
+};
+
+export const normalizeInitiativeFields = (
+  entry,
+  { initiativeRollProvided = false, initiativeTotalProvided = false } = {},
+) => {
+  if (initiativeTotalProvided) {
+    applyManualInitiativeTotal(entry);
+    return;
+  }
+
+  if (initiativeRollProvided || entry.initiativeSource !== "manual") {
+    applyAutomaticInitiativeRoll(entry);
+  }
+};
+
+export const recalculateInitiativeTotal = (entry) => {
+  normalizeInitiativeFields(entry, { initiativeRollProvided: true });
 };
 
 export const buildEntrySnapshot = ({
@@ -21,6 +62,7 @@ export const buildEntrySnapshot = ({
   armorClass,
   initiativeBonus,
   initiativeRoll,
+  initiativeTotal,
   stats,
   consumables,
   conditions,
@@ -37,6 +79,7 @@ export const buildEntrySnapshot = ({
     armorClass,
     initiativeBonus,
     initiativeRoll,
+    initiativeTotal,
     stats,
     consumables,
     conditions,
@@ -44,7 +87,10 @@ export const buildEntrySnapshot = ({
     notes,
   };
 
-  recalculateInitiativeTotal(entry);
+  normalizeInitiativeFields(entry, {
+    initiativeRollProvided: initiativeRoll !== undefined,
+    initiativeTotalProvided: initiativeTotal !== undefined,
+  });
 
   return entry;
 };
