@@ -1602,11 +1602,11 @@ components:
       properties:
         manualInitiatives:
           type: array
-          description: Manual final initiative totals by entry. Applied entries store initiativeRoll as null and initiativeSource as manual. Entries with blank or missing initiativeTotal values are treated as missing and may be rolled by the backend.
+          description: Manual final integer initiative totals by entry. Applied entries store initiativeRoll as null and initiativeSource as manual. Values may be negative, but must be whole numbers.
           items:
             type: object
             additionalProperties: false
-            required: [entryId]
+            required: [entryId, initiativeTotal]
             properties:
               entryId:
                 $ref: '#/components/schemas/ObjectId'

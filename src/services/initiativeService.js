@@ -22,18 +22,12 @@ export const buildTurnResponse = (encounter) => ({
 });
 
 export const compareInitiativeEntries = (firstEntry, secondEntry) => {
-  const firstTotal = firstEntry.initiativeTotal ?? Number.NEGATIVE_INFINITY;
-  const secondTotal = secondEntry.initiativeTotal ?? Number.NEGATIVE_INFINITY;
-
-  if (firstTotal !== secondTotal) {
-    return secondTotal - firstTotal;
+  if ((secondEntry.initiativeTotal ?? -999) !== (firstEntry.initiativeTotal ?? -999)) {
+    return (secondEntry.initiativeTotal ?? -999) - (firstEntry.initiativeTotal ?? -999);
   }
 
-  const firstBonus = firstEntry.initiativeBonus ?? 0;
-  const secondBonus = secondEntry.initiativeBonus ?? 0;
-
-  if (firstBonus !== secondBonus) {
-    return secondBonus - firstBonus;
+  if ((secondEntry.initiativeBonus ?? 0) !== (firstEntry.initiativeBonus ?? 0)) {
+    return (secondEntry.initiativeBonus ?? 0) - (firstEntry.initiativeBonus ?? 0);
   }
 
   return firstEntry.name.localeCompare(secondEntry.name);
@@ -73,17 +67,11 @@ export const getManualInitiativesByEntryId = (manualInitiatives) => {
       return { error: "manualInitiatives entryId is required" };
     }
 
-    if (initiativeTotal === undefined || initiativeTotal === null || initiativeTotal === "") {
-      continue;
-    }
-
-    const parsedTotal = Number(initiativeTotal);
-
-    if (!Number.isInteger(parsedTotal)) {
+    if (!Number.isInteger(initiativeTotal)) {
       return { error: "manualInitiatives initiativeTotal must be an integer" };
     }
 
-    manualInitiativesByEntryId.set(entryId, parsedTotal);
+    manualInitiativesByEntryId.set(entryId, initiativeTotal);
   }
 
   return { manualInitiativesByEntryId };
