@@ -96,6 +96,7 @@ const applyInitiativeRoll = (entry, providedRoll) => {
     return false;
   }
 
+  entry.initiativeSource = "auto";
   entry.initiativeRoll = roll;
   entry.initiativeTotal = roll + (entry.initiativeBonus ?? 0);
   return true;
@@ -117,6 +118,7 @@ export const rollInitiative = (
     const entryId = entry._id.toString();
 
     if (manualInitiativesByEntryId.has(entryId)) {
+      entry.initiativeSource = "manual";
       entry.initiativeRoll = null;
       entry.initiativeTotal = manualInitiativesByEntryId.get(entryId);
       continue;
