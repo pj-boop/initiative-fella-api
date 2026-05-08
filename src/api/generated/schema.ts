@@ -128,7 +128,10 @@ export interface paths {
             };
         };
         put?: never;
-        /** Create a campaign */
+        /**
+         * Create a campaign
+         * @description Default party characters cannot be set during creation; create the campaign first, then use the party endpoints.
+         */
         post: {
             parameters: {
                 query?: never;
@@ -1604,8 +1607,6 @@ export interface components {
             name: string;
             /** @default  */
             notes: string;
-            /** @default [] */
-            defaultPartyCharacterIds: components["schemas"]["ObjectId"][];
         };
         UpdateCampaignRequest: {
             name?: string;

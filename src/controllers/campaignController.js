@@ -62,22 +62,21 @@ export const createCampaign = async (req, res) => {
     return res.status(400).json({ message: "name is required" });
   }
 
-  if (
-    !(await validatePartyCharacterIds({
-      characterIds: defaultPartyCharacterIds,
-      campaignId: null,
-      userId: req.user._id,
-      res,
-    }))
-  ) {
-    return;
+  if (!Array.isArray(defaultPartyCharacterIds)) {
+    return res.status(400).json({ message: "defaultPartyCharacterIds must be an array" });
+  }
+
+  if (defaultPartyCharacterIds.length > 0) {
+    return res.status(400).json({
+      message: "Create the campaign first, then add party characters",
+    });
   }
 
   const campaign = await Campaign.create({
     user: req.user._id,
     name,
     notes,
-    defaultPartyCharacterIds,
+    defaultPartyCharacterIds: [],
   });
 
   return res.status(201).json(campaign);

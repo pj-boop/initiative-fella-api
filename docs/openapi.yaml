@@ -102,6 +102,7 @@ paths:
     post:
       tags: [Campaigns]
       summary: Create a campaign
+      description: Default party characters cannot be set during creation; create the campaign first, then use the party endpoints.
       requestBody:
         required: true
         content:
@@ -1165,11 +1166,6 @@ components:
         notes:
           type: string
           default: ''
-        defaultPartyCharacterIds:
-          type: array
-          default: []
-          items:
-            $ref: '#/components/schemas/ObjectId'
     UpdateCampaignRequest:
       type: object
       minProperties: 1
