@@ -145,5 +145,17 @@ export const deleteCharacter = async (req, res) => {
     return res.status(404).json({ message: "Character not found" });
   }
 
+  await Campaign.updateMany(
+    {
+      user: req.user._id,
+      defaultPartyCharacterIds: character._id,
+    },
+    {
+      $pull: {
+        defaultPartyCharacterIds: character._id,
+      },
+    },
+  );
+
   return res.status(200).json({ message: "Character deleted", character });
 };
