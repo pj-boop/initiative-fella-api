@@ -172,6 +172,7 @@ const encounterSchema = new mongoose.Schema(
       type: Number,
       default: 0,
       min: 0,
+      validate: integerValidator,
     },
     entries: {
       type: [initiativeEntrySchema],
