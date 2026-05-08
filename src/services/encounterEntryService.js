@@ -2,10 +2,12 @@ import Character from "../models/Character.js";
 
 export const recalculateInitiativeTotal = (entry) => {
   if (entry.initiativeRoll === null || entry.initiativeRoll === undefined) {
+    entry.initiativeSource = null;
     entry.initiativeTotal = null;
     return;
   }
 
+  entry.initiativeSource = "auto";
   entry.initiativeTotal = entry.initiativeRoll + (entry.initiativeBonus ?? 0);
 };
 

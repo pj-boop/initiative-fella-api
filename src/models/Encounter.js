@@ -98,6 +98,11 @@ const initiativeEntrySchema = new mongoose.Schema(
       default: null,
       validate: nullableIntegerValidator,
     },
+    initiativeSource: {
+      type: String,
+      enum: ["manual", "auto"],
+      default: null,
+    },
     initiativeTotal: {
       type: Number,
       default: null,

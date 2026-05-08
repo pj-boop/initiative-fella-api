@@ -1357,7 +1357,7 @@ components:
           type: string
     InitiativeEntry:
       type: object
-      required: [_id, name, type, maxHp, currentHp, tempHp, armorClass, initiativeBonus, initiativeRoll, initiativeTotal, stats, consumables, conditions, status, notes, createdAt, updatedAt]
+      required: [_id, name, type, maxHp, currentHp, tempHp, armorClass, initiativeBonus, initiativeRoll, initiativeSource, initiativeTotal, stats, consumables, conditions, status, notes, createdAt, updatedAt]
       properties:
         _id:
           $ref: '#/components/schemas/ObjectId'
@@ -1391,6 +1391,12 @@ components:
         initiativeRoll:
           oneOf:
             - type: integer
+            - type: 'null'
+          default: null
+        initiativeSource:
+          oneOf:
+            - type: string
+              enum: [manual, auto]
             - type: 'null'
           default: null
         initiativeTotal:

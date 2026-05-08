@@ -1738,6 +1738,8 @@ export interface components {
             /** @default null */
             initiativeRoll: number | null;
             /** @default null */
+            initiativeSource: ("manual" | "auto") | null;
+            /** @default null */
             initiativeTotal: number | null;
             /** @default {} */
             stats: {
