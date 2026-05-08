@@ -13,7 +13,7 @@ import { useConsumable } from "../services/consumableService.js";
 import {
   buildEntrySnapshot,
   buildEntryFromCharacter,
-  recalculateInitiativeTotal,
+  normalizeInitiativeFields,
 } from "../services/encounterEntryService.js";
 import { parseNonNegativeInt, parsePositiveInt } from "../utils/numbers.js";
 import { pickAllowedFields } from "../utils/pickAllowedFields.js";
@@ -27,6 +27,7 @@ const allowedEntryUpdateFields = [
   "armorClass",
   "initiativeBonus",
   "initiativeRoll",
+  "initiativeTotal",
   "stats",
   "consumables",
   "conditions",
@@ -330,8 +331,15 @@ export const updateEntry = async (req, res) => {
 
   entry.set(updates);
 
-  if ("initiativeRoll" in updates || "initiativeBonus" in updates) {
-    recalculateInitiativeTotal(entry);
+  if (
+    "initiativeRoll" in updates ||
+    "initiativeTotal" in updates ||
+    "initiativeBonus" in updates
+  ) {
+    normalizeInitiativeFields(entry, {
+      initiativeRollProvided: "initiativeRoll" in updates,
+      initiativeTotalProvided: "initiativeTotal" in updates,
+    });
   }
 
   await encounter.save();

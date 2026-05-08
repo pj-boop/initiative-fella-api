@@ -1401,9 +1401,10 @@ components:
           default: null
         initiativeTotal:
           oneOf:
-            - type: number
+            - type: integer
             - type: 'null'
           default: null
+          description: Final initiative total. Manual entries set initiativeRoll to null and initiativeSource to manual.
         stats:
           type: object
           additionalProperties: true
@@ -1461,6 +1462,12 @@ components:
             - type: integer
             - type: 'null'
           default: null
+        initiativeTotal:
+          oneOf:
+            - type: integer
+            - type: 'null'
+          default: null
+          description: Provide a final manual initiative total. When set, the API stores initiativeRoll as null and initiativeSource as manual.
         stats:
           type: object
           additionalProperties: true
@@ -1507,6 +1514,11 @@ components:
           oneOf:
             - type: integer
             - type: 'null'
+        initiativeTotal:
+          oneOf:
+            - type: integer
+            - type: 'null'
+          description: Provide a final manual initiative total. When set, the API stores initiativeRoll as null and initiativeSource as manual.
         stats:
           type: object
           additionalProperties: true
@@ -1590,7 +1602,7 @@ components:
       properties:
         manualInitiatives:
           type: array
-          description: Manual final initiative totals by entry. Entries with blank or missing initiativeTotal values are treated as missing and may be rolled by the backend.
+          description: Manual final initiative totals by entry. Applied entries store initiativeRoll as null and initiativeSource as manual. Entries with blank or missing initiativeTotal values are treated as missing and may be rolled by the backend.
           items:
             type: object
             additionalProperties: false

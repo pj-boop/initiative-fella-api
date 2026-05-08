@@ -106,6 +106,7 @@ const initiativeEntrySchema = new mongoose.Schema(
     initiativeTotal: {
       type: Number,
       default: null,
+      validate: nullableIntegerValidator,
     },
     stats: {
       type: mongoose.Schema.Types.Mixed,
