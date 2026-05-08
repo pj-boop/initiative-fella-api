@@ -331,6 +331,12 @@ export const updateEntry = async (req, res) => {
 
   entry.set(updates);
 
+  if (entry.currentHp > entry.maxHp) {
+    return res.status(400).json({
+      message: "currentHp cannot exceed maxHp",
+    });
+  }
+
   if (
     "initiativeRoll" in updates ||
     "initiativeTotal" in updates ||
