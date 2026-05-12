@@ -47,6 +47,18 @@ const validatePartyCharacterIds = async ({ characterIds, campaignId, userId, res
     return false;
   }
 
+  const playerCharacterCount = await Character.countDocuments({
+    _id: { $in: uniqueCharacterIds },
+    user: userId,
+    campaign: campaignId,
+    type: "player",
+  });
+
+  if (playerCharacterCount !== uniqueCharacterIds.length) {
+    res.status(400).json({ message: "Campaign main party can only contain player characters" });
+    return false;
+  }
+
   return true;
 };
 
@@ -163,6 +175,10 @@ export const addPartyCharacter = async (req, res) => {
 
   if (!character) {
     return res.status(404).json({ message: "Character not found" });
+  }
+
+  if (character.type !== "player") {
+    return res.status(400).json({ message: "Campaign main party can only contain player characters" });
   }
 
   if (!campaign.defaultPartyCharacterIds.some((characterId) => characterId.equals(character._id))) {

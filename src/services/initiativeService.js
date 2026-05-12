@@ -100,6 +100,8 @@ export const rollInitiative = (
   } = {},
 ) => {
   const turnEntryIndexes = getTurnEntryIndexes(encounter);
+  const currentEntryId =
+    encounter.status === "active" ? encounter.entries[encounter.currentTurnIndex]?._id?.toString() : null;
 
   for (const entryIndex of turnEntryIndexes) {
     const entry = encounter.entries[entryIndex];
@@ -147,7 +149,15 @@ export const rollInitiative = (
     return compareInitiativeEntries(firstEntry, secondEntry);
   });
 
-  encounter.currentTurnIndex = getTurnEntryIndexes(encounter)[0];
+  const sortedTurnEntryIndexes = getTurnEntryIndexes(encounter);
+  const preservedTurnIndex = currentEntryId
+    ? encounter.entries.findIndex((entry) => entry._id.toString() === currentEntryId)
+    : -1;
+
+  encounter.currentTurnIndex =
+    preservedTurnIndex !== -1 && sortedTurnEntryIndexes.includes(preservedTurnIndex)
+      ? preservedTurnIndex
+      : sortedTurnEntryIndexes[0];
   encounter.markModified("entries");
   return true;
 };

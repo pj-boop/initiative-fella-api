@@ -81,6 +81,52 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '500':
           $ref: '#/components/responses/InternalServerError'
+  /api/auth/forgot-password:
+    post:
+      tags: [Auth]
+      summary: Request a password reset token
+      description: Stores a hashed reset token for the user if the email exists. Non-production responses include the raw token until email delivery is wired up.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ForgotPasswordRequest'
+      responses:
+        '200':
+          description: Password reset request accepted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PasswordResetRequestResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/auth/reset-password:
+    post:
+      tags: [Auth]
+      summary: Reset a password
+      description: Replaces the user's password when the reset token is valid and unexpired.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetPasswordRequest'
+      responses:
+        '200':
+          description: Password reset successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
   /api/campaigns:
     get:
       tags: [Campaigns]
@@ -240,6 +286,7 @@ paths:
       description: Returns the authenticated user's characters sorted by newest first.
       parameters:
         - $ref: '#/components/parameters/CharacterTypeQuery'
+        - $ref: '#/components/parameters/CharacterDispositionQuery'
         - $ref: '#/components/parameters/CampaignIdQuery'
       responses:
         '200':
@@ -591,6 +638,8 @@ paths:
               properties:
                 characterId:
                   $ref: '#/components/schemas/ObjectId'
+                initiativeMode:
+                  $ref: '#/components/schemas/InitiativeMode'
       responses:
         '201':
           $ref: '#/components/responses/EntryMutationCreatedResponse'
@@ -647,6 +696,86 @@ paths:
       responses:
         '201':
           $ref: '#/components/responses/EntryMutationCreatedResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/encounters/{encounterId}/entries/batch/damage:
+    parameters:
+      - $ref: '#/components/parameters/EncounterId'
+    post:
+      tags: [Initiative Entries]
+      summary: Apply damage to multiple initiative entries
+      requestBody:
+        $ref: '#/components/requestBodies/BatchAmountBody'
+      responses:
+        '200':
+          $ref: '#/components/responses/BatchEntryMutationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/encounters/{encounterId}/entries/batch/heal:
+    parameters:
+      - $ref: '#/components/parameters/EncounterId'
+    post:
+      tags: [Initiative Entries]
+      summary: Heal multiple initiative entries
+      requestBody:
+        $ref: '#/components/requestBodies/BatchAmountBody'
+      responses:
+        '200':
+          $ref: '#/components/responses/BatchEntryMutationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/encounters/{encounterId}/entries/batch/temp-hp:
+    parameters:
+      - $ref: '#/components/parameters/EncounterId'
+    post:
+      tags: [Initiative Entries]
+      summary: Set temporary HP for multiple initiative entries
+      requestBody:
+        $ref: '#/components/requestBodies/BatchAmountBody'
+      responses:
+        '200':
+          $ref: '#/components/responses/BatchEntryMutationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/encounters/{encounterId}/entries/batch/conditions:
+    parameters:
+      - $ref: '#/components/parameters/EncounterId'
+    post:
+      tags: [Initiative Entries]
+      summary: Add or remove a condition for multiple initiative entries
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BatchConditionRequest'
+      responses:
+        '200':
+          $ref: '#/components/responses/BatchEntryMutationResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -976,6 +1105,13 @@ components:
       schema:
         $ref: '#/components/schemas/CharacterType'
       description: Optional type filter. The backend lowercases the value before filtering.
+    CharacterDispositionQuery:
+      name: disposition
+      in: query
+      required: false
+      schema:
+        $ref: '#/components/schemas/CharacterDisposition'
+      description: Optional disposition filter. The backend lowercases the value before filtering.
     EncounterStatusQuery:
       name: status
       in: query
@@ -998,6 +1134,12 @@ components:
                 minimum: 0
                 description: Damage and healing require a positive integer; temp HP accepts zero.
                 example: 5
+    BatchAmountBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/BatchAmountRequest'
   responses:
     BadRequest:
       description: Invalid input.
@@ -1041,6 +1183,12 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/EntryMutationResponse'
+    BatchEntryMutationResponse:
+      description: Entries and containing encounter after mutation.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/BatchEntryMutationResponse'
   schemas:
     ObjectId:
       type: string
@@ -1053,6 +1201,13 @@ components:
     CharacterType:
       type: string
       enum: [player, npc, monster]
+    CharacterDisposition:
+      type: string
+      enum: [friendly, hostile, neutral]
+    InitiativeMode:
+      type: string
+      enum: [roll, auto, manual]
+      description: roll uses d20 + initiativeBonus; auto uses 10 + initiativeBonus; manual leaves initiative blank.
     EncounterStatus:
       type: string
       enum: [draft, active, completed]
@@ -1133,6 +1288,42 @@ components:
           format: password
           writeOnly: true
           example: secret123
+    ForgotPasswordRequest:
+      type: object
+      required: [email]
+      additionalProperties: false
+      properties:
+        email:
+          type: string
+          format: email
+          example: fella@example.com
+    ResetPasswordRequest:
+      type: object
+      required: [token, password]
+      additionalProperties: false
+      properties:
+        token:
+          type: string
+        password:
+          type: string
+          minLength: 6
+          format: password
+          writeOnly: true
+          example: newsecret123
+    MessageResponse:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
+    PasswordResetRequestResponse:
+      allOf:
+        - $ref: '#/components/schemas/MessageResponse'
+        - type: object
+          properties:
+            resetToken:
+              type: string
+              description: Included only outside production until email delivery is configured.
     Campaign:
       type: object
       required: [_id, user, name, notes, defaultPartyCharacterIds, createdAt, updatedAt]
@@ -1181,7 +1372,7 @@ components:
             $ref: '#/components/schemas/ObjectId'
     Character:
       type: object
-      required: [_id, user, campaign, name, type, maxHp, armorClass, initiativeBonus, stats, consumables, notes, createdAt, updatedAt]
+      required: [_id, user, campaign, name, type, disposition, maxHp, armorClass, initiativeBonus, stats, consumables, notes, createdAt, updatedAt]
       properties:
         _id:
           $ref: '#/components/schemas/ObjectId'
@@ -1194,6 +1385,8 @@ components:
           example: Briv Stonehide
         type:
           $ref: '#/components/schemas/CharacterType'
+        disposition:
+          $ref: '#/components/schemas/CharacterDisposition'
         maxHp:
           type: integer
           minimum: 0
@@ -1240,6 +1433,8 @@ components:
           type: string
         type:
           $ref: '#/components/schemas/CharacterType'
+        disposition:
+          $ref: '#/components/schemas/CharacterDisposition'
         maxHp:
           type: integer
           minimum: 0
@@ -1271,6 +1466,8 @@ components:
           type: string
         type:
           $ref: '#/components/schemas/CharacterType'
+        disposition:
+          $ref: '#/components/schemas/CharacterDisposition'
         maxHp:
           type: integer
           minimum: 0
@@ -1353,7 +1550,7 @@ components:
           type: string
     InitiativeEntry:
       type: object
-      required: [_id, name, type, maxHp, currentHp, tempHp, armorClass, initiativeBonus, initiativeRoll, initiativeSource, initiativeTotal, stats, consumables, conditions, status, notes, createdAt, updatedAt]
+      required: [_id, name, type, disposition, maxHp, currentHp, tempHp, armorClass, initiativeBonus, initiativeRoll, initiativeSource, initiativeTotal, stats, consumables, conditions, status, notes, createdAt, updatedAt]
       properties:
         _id:
           $ref: '#/components/schemas/ObjectId'
@@ -1366,6 +1563,8 @@ components:
           type: string
         type:
           $ref: '#/components/schemas/CharacterType'
+        disposition:
+          $ref: '#/components/schemas/CharacterDisposition'
         maxHp:
           type: integer
           minimum: 0
@@ -1435,6 +1634,8 @@ components:
           type: string
         type:
           $ref: '#/components/schemas/CharacterType'
+        disposition:
+          $ref: '#/components/schemas/CharacterDisposition'
         maxHp:
           type: integer
           minimum: 0
@@ -1464,6 +1665,8 @@ components:
             - type: 'null'
           default: null
           description: Provide a final manual initiative total. When set, the API stores initiativeRoll as null and initiativeSource as manual.
+        initiativeMode:
+          $ref: '#/components/schemas/InitiativeMode'
         stats:
           type: object
           additionalProperties: true
@@ -1492,6 +1695,8 @@ components:
           type: string
         type:
           $ref: '#/components/schemas/CharacterType'
+        disposition:
+          $ref: '#/components/schemas/CharacterDisposition'
         maxHp:
           type: integer
           minimum: 0
@@ -1647,6 +1852,34 @@ components:
           type: integer
           minimum: 1
       description: Provide either currentTurnIndex or entryId, not both; round may be included with either selector or by itself.
+    BatchAmountRequest:
+      type: object
+      required: [entryIds, amount]
+      additionalProperties: false
+      properties:
+        entryIds:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/ObjectId'
+        amount:
+          type: integer
+    BatchConditionRequest:
+      type: object
+      required: [entryIds, condition]
+      additionalProperties: false
+      properties:
+        entryIds:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/ObjectId'
+        condition:
+          type: string
+        action:
+          type: string
+          enum: [add, remove]
+          default: add
     TurnResponse:
       type: object
       required: [encounter, currentEntry]
@@ -1663,6 +1896,16 @@ components:
       properties:
         entry:
           $ref: '#/components/schemas/InitiativeEntry'
+        encounter:
+          $ref: '#/components/schemas/Encounter'
+    BatchEntryMutationResponse:
+      type: object
+      required: [entries, encounter]
+      properties:
+        entries:
+          type: array
+          items:
+            $ref: '#/components/schemas/InitiativeEntry'
         encounter:
           $ref: '#/components/schemas/Encounter'
     ConsumableMutationResponse:

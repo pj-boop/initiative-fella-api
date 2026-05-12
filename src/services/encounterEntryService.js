@@ -1,4 +1,5 @@
 import Character from "../models/Character.js";
+import { getInitiativeRoll } from "../utils/numbers.js";
 
 const clearInitiative = (entry) => {
   entry.initiativeSource = null;
@@ -52,10 +53,38 @@ export const recalculateInitiativeTotal = (entry) => {
   normalizeInitiativeFields(entry, { initiativeRollProvided: true });
 };
 
+const applyInitiativeMode = (entry, initiativeMode) => {
+  if (initiativeMode === undefined || initiativeMode === null) {
+    return true;
+  }
+
+  if (initiativeMode === "manual") {
+    clearInitiative(entry);
+    return true;
+  }
+
+  if (initiativeMode === "auto") {
+    entry.initiativeSource = "auto";
+    entry.initiativeRoll = 10;
+    entry.initiativeTotal = 10 + (entry.initiativeBonus ?? 0);
+    return true;
+  }
+
+  if (initiativeMode === "roll") {
+    entry.initiativeSource = "auto";
+    entry.initiativeRoll = getInitiativeRoll();
+    entry.initiativeTotal = entry.initiativeRoll + (entry.initiativeBonus ?? 0);
+    return true;
+  }
+
+  return false;
+};
+
 export const buildEntrySnapshot = ({
   characterId,
   name,
   type,
+  disposition,
   maxHp,
   currentHp,
   tempHp,
@@ -68,11 +97,13 @@ export const buildEntrySnapshot = ({
   conditions,
   status,
   notes,
+  initiativeMode,
 }) => {
   const entry = {
     characterId,
     name,
     type,
+    disposition,
     maxHp,
     currentHp: currentHp ?? maxHp,
     tempHp,
@@ -92,14 +123,19 @@ export const buildEntrySnapshot = ({
     initiativeTotalProvided: initiativeTotal !== undefined,
   });
 
+  if (!applyInitiativeMode(entry, initiativeMode)) {
+    throw new Error("initiativeMode must be one of: roll, auto, manual");
+  }
+
   return entry;
 };
 
-export const buildEntryFromCharacter = (character) => {
+export const buildEntryFromCharacter = (character, options = {}) => {
   return buildEntrySnapshot({
     characterId: character._id,
     name: character.name,
     type: character.type,
+    disposition: character.disposition,
     maxHp: character.maxHp,
     currentHp: character.maxHp,
     armorClass: character.armorClass,
@@ -107,6 +143,7 @@ export const buildEntryFromCharacter = (character) => {
     stats: character.stats,
     consumables: character.consumables,
     notes: character.notes,
+    initiativeMode: options.initiativeMode,
   });
 };
 
@@ -149,6 +186,7 @@ export const addDefaultPartyEntries = async ({ encounter, campaign, userId }) =>
     _id: { $in: characterIdsToAdd },
     user: userId,
     campaign: campaign._id,
+    type: "player",
   });
   const charactersById = new Map(
     characters.map((character) => [character._id.toString(), character])

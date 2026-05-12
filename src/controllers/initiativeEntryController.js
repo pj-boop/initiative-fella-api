@@ -18,9 +18,12 @@ import {
 import { parseNonNegativeInt, parsePositiveInt } from "../utils/numbers.js";
 import { pickAllowedFields } from "../utils/pickAllowedFields.js";
 
+const allowedInitiativeModes = new Set(["roll", "auto", "manual"]);
+
 const allowedEntryUpdateFields = [
   "name",
   "type",
+  "disposition",
   "maxHp",
   "currentHp",
   "tempHp",
@@ -62,12 +65,77 @@ const findEntryOrRespond = async (req, res) => {
     return null;
   }
 
+  if (rejectCompletedEncounterMutation(encounter, res)) {
+    return null;
+  }
+
   if (!entry) {
     res.status(404).json({ message: "Entry not found" });
     return null;
   }
 
   return { encounter, entry };
+};
+
+const rejectCompletedEncounterMutation = (encounter, res) => {
+  if (encounter.status !== "completed") {
+    return false;
+  }
+
+  res.status(400).json({ message: "Completed encounters are read-only" });
+  return true;
+};
+
+const validateInitiativeMode = (initiativeMode, res) => {
+  if (initiativeMode === undefined || initiativeMode === null) {
+    return true;
+  }
+
+  if (allowedInitiativeModes.has(initiativeMode)) {
+    return true;
+  }
+
+  res.status(400).json({ message: "initiativeMode must be one of: roll, auto, manual" });
+  return false;
+};
+
+const requireEntryIds = (entryIds, res) => {
+  if (!Array.isArray(entryIds) || entryIds.length === 0) {
+    res.status(400).json({ message: "entryIds must be a non-empty array" });
+    return null;
+  }
+
+  if (entryIds.some((entryId) => !mongoose.isValidObjectId(entryId))) {
+    res.status(400).json({ message: "Invalid entry id" });
+    return null;
+  }
+
+  return [...new Set(entryIds.map((entryId) => entryId.toString()))];
+};
+
+const findEntriesOrRespond = async (req, res, entryIds) => {
+  const encounter = await Encounter.findOne({
+    _id: req.params.encounterId,
+    user: req.user._id,
+  });
+
+  if (!encounter) {
+    res.status(404).json({ message: "Encounter not found" });
+    return null;
+  }
+
+  if (rejectCompletedEncounterMutation(encounter, res)) {
+    return null;
+  }
+
+  const entries = entryIds.map((entryId) => encounter.entries.id(entryId));
+
+  if (entries.some((entry) => !entry)) {
+    res.status(404).json({ message: "One or more entries were not found" });
+    return null;
+  }
+
+  return { encounter, entries };
 };
 
 const findConsumableOrRespond = async (req, res) => {
@@ -88,7 +156,9 @@ const findConsumableOrRespond = async (req, res) => {
 };
 
 export const addFromCharacter = async (req, res) => {
-  const { characterId } = req.body;
+  const { characterId, initiativeMode } = req.body;
+
+  if (!validateInitiativeMode(initiativeMode, res)) return;
 
   if (!characterId) {
     return res.status(400).json({ message: "characterId is required" });
@@ -107,6 +177,8 @@ export const addFromCharacter = async (req, res) => {
     return res.status(404).json({ message: "Encounter not found" });
   }
 
+  if (rejectCompletedEncounterMutation(encounter, res)) return;
+
   const character = await Character.findOne({
     _id: characterId,
     user: req.user._id,
@@ -117,14 +189,25 @@ export const addFromCharacter = async (req, res) => {
     return res.status(404).json({ message: "Character not found" });
   }
 
-  encounter.entries.push(buildEntryFromCharacter(character));
+  if (
+    character.type === "player" &&
+    encounter.entries.some(
+      (entry) => entry.characterId?.toString() === character._id.toString()
+    )
+  ) {
+    return res.status(400).json({ message: "Player character is already in this encounter" });
+  }
+
+  encounter.entries.push(buildEntryFromCharacter(character, { initiativeMode }));
   await encounter.save();
 
   return res.status(201).json({ entry: encounter.entries.at(-1), encounter });
 };
 
 export const addCustomEntry = async (req, res) => {
-  const { name, type, maxHp } = req.body;
+  const { name, type, maxHp, initiativeMode } = req.body;
+
+  if (!validateInitiativeMode(initiativeMode, res)) return;
 
   if (!name || !type || maxHp === undefined || maxHp === null) {
     return res.status(400).json({ message: "name, type, and maxHp are required" });
@@ -139,10 +222,103 @@ export const addCustomEntry = async (req, res) => {
     return res.status(404).json({ message: "Encounter not found" });
   }
 
+  if (rejectCompletedEncounterMutation(encounter, res)) return;
+
   encounter.entries.push(buildEntrySnapshot(req.body));
   await encounter.save();
 
   return res.status(201).json({ entry: encounter.entries.at(-1), encounter });
+};
+
+export const batchDamageEntries = async (req, res) => {
+  const entryIds = requireEntryIds(req.body.entryIds, res);
+  if (!entryIds) return;
+
+  const amount = parsePositiveInt(req.body.amount);
+
+  if (!amount) {
+    return res.status(400).json({ message: "amount must be a positive integer" });
+  }
+
+  const result = await findEntriesOrRespond(req, res, entryIds);
+  if (!result) return;
+
+  const { encounter, entries } = result;
+  entries.forEach((entry) => applyDamage(entry, amount));
+  await encounter.save();
+
+  return res.status(200).json({ entries, encounter });
+};
+
+export const batchHealEntries = async (req, res) => {
+  const entryIds = requireEntryIds(req.body.entryIds, res);
+  if (!entryIds) return;
+
+  const amount = parsePositiveInt(req.body.amount);
+
+  if (!amount) {
+    return res.status(400).json({ message: "amount must be a positive integer" });
+  }
+
+  const result = await findEntriesOrRespond(req, res, entryIds);
+  if (!result) return;
+
+  const { encounter, entries } = result;
+  entries.forEach((entry) => applyHealing(entry, amount));
+  await encounter.save();
+
+  return res.status(200).json({ entries, encounter });
+};
+
+export const batchUpdateTempHpEntries = async (req, res) => {
+  const entryIds = requireEntryIds(req.body.entryIds, res);
+  if (!entryIds) return;
+
+  const amount = parseNonNegativeInt(req.body.amount);
+
+  if (amount === null) {
+    return res.status(400).json({ message: "amount must be a non-negative integer" });
+  }
+
+  const result = await findEntriesOrRespond(req, res, entryIds);
+  if (!result) return;
+
+  const { encounter, entries } = result;
+  entries.forEach((entry) => setTempHp(entry, amount));
+  await encounter.save();
+
+  return res.status(200).json({ entries, encounter });
+};
+
+export const batchUpdateEntryConditions = async (req, res) => {
+  const entryIds = requireEntryIds(req.body.entryIds, res);
+  if (!entryIds) return;
+
+  const condition = normalizeCondition(req.body.condition);
+  const action = (req.body.action ?? "add").toLowerCase();
+
+  if (!condition) {
+    return res.status(400).json({ message: "condition is required" });
+  }
+
+  if (!["add", "remove"].includes(action)) {
+    return res.status(400).json({ message: "action must be one of: add, remove" });
+  }
+
+  const result = await findEntriesOrRespond(req, res, entryIds);
+  if (!result) return;
+
+  const { encounter, entries } = result;
+  entries.forEach((entry) => {
+    if (action === "add") {
+      addCondition(entry, condition);
+    } else {
+      removeCondition(entry, condition);
+    }
+  });
+  await encounter.save();
+
+  return res.status(200).json({ entries, encounter });
 };
 
 export const damageEntry = async (req, res) => {
