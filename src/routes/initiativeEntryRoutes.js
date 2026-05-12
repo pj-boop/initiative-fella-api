@@ -4,6 +4,10 @@ import {
   addCustomEntry,
   addEntryCondition,
   addFromCharacter,
+  batchDamageEntries,
+  batchHealEntries,
+  batchUpdateEntryConditions,
+  batchUpdateTempHpEntries,
   damageEntry,
   healEntry,
   removeConsumable,
@@ -28,6 +32,10 @@ router.use(validateEncounterId);
 router.post("/from-character", asyncHandler(addFromCharacter));
 router.post("/from-party", asyncHandler(addPartyEntries));
 router.post("/custom", asyncHandler(addCustomEntry));
+router.post("/batch/damage", asyncHandler(batchDamageEntries));
+router.post("/batch/heal", asyncHandler(batchHealEntries));
+router.post("/batch/temp-hp", asyncHandler(batchUpdateTempHpEntries));
+router.post("/batch/conditions", asyncHandler(batchUpdateEntryConditions));
 router.post("/:entryId/damage", validateEntryId, asyncHandler(damageEntry));
 router.post("/:entryId/heal", validateEntryId, asyncHandler(healEntry));
 router.post("/:entryId/temp-hp", validateEntryId, asyncHandler(updateTempHp));

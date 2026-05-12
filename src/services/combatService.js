@@ -1,3 +1,7 @@
+export const isDown = (entry) => (entry.currentHp ?? 0) <= 0;
+
+export const canAct = (entry) => entry.status === "active" && !isDown(entry);
+
 export const normalizeCondition = (condition) => {
   if (typeof condition !== "string") {
     return "";

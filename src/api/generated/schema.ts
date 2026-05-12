@@ -94,6 +94,96 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/auth/forgot-password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Request a password reset token
+         * @description Stores a hashed reset token for the user if the email exists. Non-production responses include the raw token until email delivery is wired up.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ForgotPasswordRequest"];
+                };
+            };
+            responses: {
+                /** @description Password reset request accepted. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PasswordResetRequestResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                500: components["responses"]["InternalServerError"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/reset-password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Reset a password
+         * @description Replaces the user's password when the reset token is valid and unexpired.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ResetPasswordRequest"];
+                };
+            };
+            responses: {
+                /** @description Password reset successfully. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["MessageResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                500: components["responses"]["InternalServerError"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/campaigns": {
         parameters: {
             query?: never;
@@ -361,6 +451,8 @@ export interface paths {
                 query?: {
                     /** @description Optional type filter. The backend lowercases the value before filtering. */
                     type?: components["parameters"]["CharacterTypeQuery"];
+                    /** @description Optional disposition filter. The backend lowercases the value before filtering. */
+                    disposition?: components["parameters"]["CharacterDispositionQuery"];
                     /** @description Optional campaign filter. */
                     campaignId?: components["parameters"]["CampaignIdQuery"];
                 };
@@ -951,6 +1043,7 @@ export interface paths {
                 content: {
                     "application/json": {
                         characterId: components["schemas"]["ObjectId"];
+                        initiativeMode?: components["schemas"]["InitiativeMode"];
                     };
                 };
             };
@@ -1046,6 +1139,154 @@ export interface paths {
             };
             responses: {
                 201: components["responses"]["EntryMutationCreatedResponse"];
+                400: components["responses"]["BadRequest"];
+                401: components["responses"]["Unauthorized"];
+                404: components["responses"]["NotFound"];
+                500: components["responses"]["InternalServerError"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/encounters/{encounterId}/entries/batch/damage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                encounterId: components["parameters"]["EncounterId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Apply damage to multiple initiative entries */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    encounterId: components["parameters"]["EncounterId"];
+                };
+                cookie?: never;
+            };
+            requestBody: components["requestBodies"]["BatchAmountBody"];
+            responses: {
+                200: components["responses"]["BatchEntryMutationResponse"];
+                400: components["responses"]["BadRequest"];
+                401: components["responses"]["Unauthorized"];
+                404: components["responses"]["NotFound"];
+                500: components["responses"]["InternalServerError"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/encounters/{encounterId}/entries/batch/heal": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                encounterId: components["parameters"]["EncounterId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Heal multiple initiative entries */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    encounterId: components["parameters"]["EncounterId"];
+                };
+                cookie?: never;
+            };
+            requestBody: components["requestBodies"]["BatchAmountBody"];
+            responses: {
+                200: components["responses"]["BatchEntryMutationResponse"];
+                400: components["responses"]["BadRequest"];
+                401: components["responses"]["Unauthorized"];
+                404: components["responses"]["NotFound"];
+                500: components["responses"]["InternalServerError"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/encounters/{encounterId}/entries/batch/temp-hp": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                encounterId: components["parameters"]["EncounterId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Set temporary HP for multiple initiative entries */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    encounterId: components["parameters"]["EncounterId"];
+                };
+                cookie?: never;
+            };
+            requestBody: components["requestBodies"]["BatchAmountBody"];
+            responses: {
+                200: components["responses"]["BatchEntryMutationResponse"];
+                400: components["responses"]["BadRequest"];
+                401: components["responses"]["Unauthorized"];
+                404: components["responses"]["NotFound"];
+                500: components["responses"]["InternalServerError"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/encounters/{encounterId}/entries/batch/conditions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                encounterId: components["parameters"]["EncounterId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add or remove a condition for multiple initiative entries */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    encounterId: components["parameters"]["EncounterId"];
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["BatchConditionRequest"];
+                };
+            };
+            responses: {
+                200: components["responses"]["BatchEntryMutationResponse"];
                 400: components["responses"]["BadRequest"];
                 401: components["responses"]["Unauthorized"];
                 404: components["responses"]["NotFound"];
@@ -1529,6 +1770,13 @@ export interface components {
         /** @enum {string} */
         CharacterType: "player" | "npc" | "monster";
         /** @enum {string} */
+        CharacterDisposition: "friendly" | "hostile" | "neutral";
+        /**
+         * @description roll uses d20 + initiativeBonus; auto uses 10 + initiativeBonus; manual leaves initiative blank.
+         * @enum {string}
+         */
+        InitiativeMode: "roll" | "auto" | "manual";
+        /** @enum {string} */
         EncounterStatus: "draft" | "active" | "completed";
         /** @enum {string} */
         EntryStatus: "active" | "down" | "dead" | "removed";
@@ -1591,6 +1839,28 @@ export interface components {
              */
             password: string;
         };
+        ForgotPasswordRequest: {
+            /**
+             * Format: email
+             * @example fella@example.com
+             */
+            email: string;
+        };
+        ResetPasswordRequest: {
+            token: string;
+            /**
+             * Format: password
+             * @example newsecret123
+             */
+            password: string;
+        };
+        MessageResponse: {
+            message: string;
+        };
+        PasswordResetRequestResponse: components["schemas"]["MessageResponse"] & {
+            /** @description Included only outside production until email delivery is configured. */
+            resetToken?: string;
+        };
         Campaign: {
             _id: components["schemas"]["ObjectId"];
             user: components["schemas"]["ObjectId"];
@@ -1620,6 +1890,7 @@ export interface components {
             /** @example Briv Stonehide */
             name: string;
             type: components["schemas"]["CharacterType"];
+            disposition: components["schemas"]["CharacterDisposition"];
             /** @example 42 */
             maxHp: number;
             /**
@@ -1660,6 +1931,7 @@ export interface components {
             campaignId: components["schemas"]["ObjectId"];
             name: string;
             type: components["schemas"]["CharacterType"];
+            disposition?: components["schemas"]["CharacterDisposition"];
             maxHp: number;
             /** @default 10 */
             armorClass: number;
@@ -1677,6 +1949,7 @@ export interface components {
         UpdateCharacterRequest: {
             name?: string;
             type?: components["schemas"]["CharacterType"];
+            disposition?: components["schemas"]["CharacterDisposition"];
             maxHp?: number;
             armorClass?: number;
             initiativeBonus?: number;
@@ -1727,6 +2000,7 @@ export interface components {
             characterId?: components["schemas"]["ObjectId"] | null;
             name: string;
             type: components["schemas"]["CharacterType"];
+            disposition: components["schemas"]["CharacterDisposition"];
             maxHp: number;
             /** @description Defaults to maxHp when omitted. */
             currentHp: number;
@@ -1763,6 +2037,7 @@ export interface components {
             characterId?: components["schemas"]["ObjectId"];
             name: string;
             type: components["schemas"]["CharacterType"];
+            disposition?: components["schemas"]["CharacterDisposition"];
             maxHp: number;
             /** @description Defaults to maxHp when omitted. */
             currentHp?: number;
@@ -1779,6 +2054,7 @@ export interface components {
              * @default null
              */
             initiativeTotal: number | null;
+            initiativeMode?: components["schemas"]["InitiativeMode"];
             /** @default {} */
             stats: {
                 [key: string]: unknown;
@@ -1794,6 +2070,7 @@ export interface components {
         UpdateInitiativeEntryRequest: {
             name?: string;
             type?: components["schemas"]["CharacterType"];
+            disposition?: components["schemas"]["CharacterDisposition"];
             maxHp?: number;
             currentHp?: number;
             tempHp?: number;
@@ -1883,12 +2160,29 @@ export interface components {
             entryId?: components["schemas"]["ObjectId"];
             round?: number;
         };
+        BatchAmountRequest: {
+            entryIds: components["schemas"]["ObjectId"][];
+            amount: number;
+        };
+        BatchConditionRequest: {
+            entryIds: components["schemas"]["ObjectId"][];
+            condition: string;
+            /**
+             * @default add
+             * @enum {string}
+             */
+            action: "add" | "remove";
+        };
         TurnResponse: {
             encounter: components["schemas"]["Encounter"];
             currentEntry: components["schemas"]["InitiativeEntry"] | null;
         };
         EntryMutationResponse: {
             entry: components["schemas"]["InitiativeEntry"];
+            encounter: components["schemas"]["Encounter"];
+        };
+        BatchEntryMutationResponse: {
+            entries: components["schemas"]["InitiativeEntry"][];
             encounter: components["schemas"]["Encounter"];
         };
         ConsumableMutationResponse: {
@@ -1961,6 +2255,15 @@ export interface components {
                 "application/json": components["schemas"]["EntryMutationResponse"];
             };
         };
+        /** @description Entries and containing encounter after mutation. */
+        BatchEntryMutationResponse: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["BatchEntryMutationResponse"];
+            };
+        };
     };
     parameters: {
         CampaignId: components["schemas"]["ObjectId"];
@@ -1972,6 +2275,8 @@ export interface components {
         CampaignIdQuery: components["schemas"]["ObjectId"];
         /** @description Optional type filter. The backend lowercases the value before filtering. */
         CharacterTypeQuery: components["schemas"]["CharacterType"];
+        /** @description Optional disposition filter. The backend lowercases the value before filtering. */
+        CharacterDispositionQuery: components["schemas"]["CharacterDisposition"];
         /** @description Optional status filter. The backend lowercases the value before filtering. */
         EncounterStatusQuery: components["schemas"]["EncounterStatus"];
     };
@@ -1985,6 +2290,11 @@ export interface components {
                      */
                     amount: number;
                 };
+            };
+        };
+        BatchAmountBody: {
+            content: {
+                "application/json": components["schemas"]["BatchAmountRequest"];
             };
         };
     };
