@@ -3,9 +3,13 @@ import Campaign from "../models/Campaign.js";
 import Character from "../models/Character.js";
 import { pickAllowedFields } from "../utils/pickAllowedFields.js";
 
+const allowedCharacterTypes = new Set(["player", "npc", "monster"]);
+const allowedDispositions = new Set(["friendly", "hostile", "neutral"]);
+
 const allowedUpdateFields = [
   "name",
   "type",
+  "disposition",
   "maxHp",
   "armorClass",
   "initiativeBonus",
@@ -19,6 +23,10 @@ const buildCharacterFilters = (query) => {
 
   if (query.type) {
     filters.type = query.type.toLowerCase();
+  }
+
+  if (query.disposition) {
+    filters.disposition = query.disposition.toLowerCase();
   }
 
   if (query.campaignId) {
@@ -41,9 +49,19 @@ const buildCharacterLookup = (req) => {
   return lookup;
 };
 
-const validateOptionalCampaignQuery = (req, res) => {
+const validateCharacterQuery = (req, res) => {
   if (req.query.campaignId && !mongoose.isValidObjectId(req.query.campaignId)) {
     res.status(400).json({ message: "Invalid campaign id" });
+    return false;
+  }
+
+  if (req.query.type && !allowedCharacterTypes.has(req.query.type.toLowerCase())) {
+    res.status(400).json({ message: "type must be one of: player, npc, monster" });
+    return false;
+  }
+
+  if (req.query.disposition && !allowedDispositions.has(req.query.disposition.toLowerCase())) {
+    res.status(400).json({ message: "disposition must be one of: friendly, hostile, neutral" });
     return false;
   }
 
@@ -62,7 +80,7 @@ const findOwnedCampaign = async (campaignId, userId) => {
 };
 
 export const getCharacters = async (req, res) => {
-  if (!validateOptionalCampaignQuery(req, res)) return;
+  if (!validateCharacterQuery(req, res)) return;
 
   const characters = await Character.find({
     user: req.user._id,
@@ -73,7 +91,7 @@ export const getCharacters = async (req, res) => {
 };
 
 export const createCharacter = async (req, res) => {
-  const { campaignId, name, type, maxHp, armorClass, initiativeBonus, stats, consumables, notes } = req.body;
+  const { campaignId, name, type, disposition, maxHp, armorClass, initiativeBonus, stats, consumables, notes } = req.body;
 
   if (!campaignId || !name || !type || maxHp === undefined || maxHp === null) {
     return res.status(400).json({ message: "campaignId, name, type, and maxHp are required" });
@@ -90,6 +108,7 @@ export const createCharacter = async (req, res) => {
     campaign: campaign._id,
     name,
     type,
+    disposition,
     maxHp,
     armorClass,
     initiativeBonus,
@@ -104,7 +123,7 @@ export const createCharacter = async (req, res) => {
 };
 
 export const getCharacter = async (req, res) => {
-  if (!validateOptionalCampaignQuery(req, res)) return;
+  if (!validateCharacterQuery(req, res)) return;
 
   const character = await Character.findOne(buildCharacterLookup(req));
 
@@ -116,7 +135,7 @@ export const getCharacter = async (req, res) => {
 };
 
 export const updateCharacter = async (req, res) => {
-  if (!validateOptionalCampaignQuery(req, res)) return;
+  if (!validateCharacterQuery(req, res)) return;
 
   const updates = pickAllowedFields(req.body, allowedUpdateFields);
 
@@ -137,7 +156,7 @@ export const updateCharacter = async (req, res) => {
 };
 
 export const deleteCharacter = async (req, res) => {
-  if (!validateOptionalCampaignQuery(req, res)) return;
+  if (!validateCharacterQuery(req, res)) return;
 
   const character = await Character.findOneAndDelete(buildCharacterLookup(req));
 

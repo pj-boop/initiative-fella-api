@@ -21,6 +21,12 @@ const consumableUsesAreIntegers = {
   message: "consumable maxUses and currentUses must be integers",
 };
 
+const dispositionByType = {
+  player: "friendly",
+  npc: "neutral",
+  monster: "hostile",
+};
+
 const characterSchema = new mongoose.Schema(
   {
     user: {
@@ -49,6 +55,16 @@ const characterSchema = new mongoose.Schema(
       enum: ["player", "npc", "monster"],
       lowercase: true,
       trim: true,
+    },
+
+    disposition: {
+      type: String,
+      enum: ["friendly", "hostile", "neutral"],
+      lowercase: true,
+      trim: true,
+      default: function () {
+        return dispositionByType[this.type] ?? "neutral";
+      },
     },
 
     maxHp: {

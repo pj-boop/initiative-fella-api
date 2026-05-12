@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import Campaign from "../models/Campaign.js";
+import Character from "../models/Character.js";
 import Encounter from "../models/Encounter.js";
 import {
   advanceTurn,
@@ -14,6 +15,8 @@ import {
 } from "../services/initiativeService.js";
 import { addDefaultPartyEntries } from "../services/encounterEntryService.js";
 import { pickAllowedFields } from "../utils/pickAllowedFields.js";
+
+const allowedEncounterStatuses = new Set(["draft", "active", "completed"]);
 
 const allowedEncounterUpdateFields = ["name", "status", "notes"];
 
@@ -38,12 +41,28 @@ const findUserEncounter = (encounterId, userId) => {
   });
 };
 
-const validateOptionalCampaignQuery = (req, res) => {
+const validateEncounterQuery = (req, res) => {
   if (req.query.campaignId && !mongoose.isValidObjectId(req.query.campaignId)) {
     res.status(400).json({ message: "Invalid campaign id" });
     return false;
   }
 
+  if (req.query.status && !allowedEncounterStatuses.has(req.query.status.toLowerCase())) {
+    res.status(400).json({ message: "status must be one of: draft, active, completed" });
+    return false;
+  }
+
+  return true;
+};
+
+const isCompletedEncounter = (encounter) => encounter.status === "completed";
+
+const rejectCompletedEncounterMutation = (encounter, res) => {
+  if (!isCompletedEncounter(encounter)) {
+    return false;
+  }
+
+  res.status(400).json({ message: "Completed encounters are read-only" });
   return true;
 };
 
@@ -81,7 +100,7 @@ const findEncounterOrRespond = async (req, res) => {
 };
 
 export const getEncounters = async (req, res) => {
-  if (!validateOptionalCampaignQuery(req, res)) return;
+  if (!validateEncounterQuery(req, res)) return;
 
   const encounters = await Encounter.find({
     user: req.user._id,
@@ -104,6 +123,15 @@ export const createEncounter = async (req, res) => {
     return res.status(404).json({ message: "Campaign not found" });
   }
 
+  const rosterCount = await Character.countDocuments({
+    user: req.user._id,
+    campaign: campaign._id,
+  });
+
+  if (rosterCount === 0) {
+    return res.status(400).json({ message: "Campaign must have at least one roster character before creating an encounter" });
+  }
+
   const encounter = new Encounter({
     user: req.user._id,
     campaign: campaign._id,
@@ -123,6 +151,8 @@ export const createEncounter = async (req, res) => {
 export const addPartyEntries = async (req, res) => {
   const encounter = await findEncounterOrRespond(req, res);
   if (!encounter) return;
+  if (rejectCompletedEncounterMutation(encounter, res)) return;
+
 
   const campaign = await findOwnedCampaign(encounter.campaign, req.user._id);
 
@@ -139,6 +169,8 @@ export const addPartyEntries = async (req, res) => {
 export const rollInitiative = async (req, res) => {
   const encounter = await findEncounterOrRespond(req, res);
   if (!encounter) return;
+  if (rejectCompletedEncounterMutation(encounter, res)) return;
+
 
   const turnEntryIndexes = getRequiredTurnEntryIndexes(encounter, res);
   if (!turnEntryIndexes) return;
@@ -184,6 +216,8 @@ export const rollInitiative = async (req, res) => {
 export const startEncounter = async (req, res) => {
   const encounter = await findEncounterOrRespond(req, res);
   if (!encounter) return;
+  if (rejectCompletedEncounterMutation(encounter, res)) return;
+
 
   const turnEntryIndexes = getRequiredTurnEntryIndexes(encounter, res);
   if (!turnEntryIndexes) return;
@@ -197,6 +231,8 @@ export const startEncounter = async (req, res) => {
 export const nextTurn = async (req, res) => {
   const encounter = await findEncounterOrRespond(req, res);
   if (!encounter) return;
+  if (rejectCompletedEncounterMutation(encounter, res)) return;
+
 
   const turnEntryIndexes = getRequiredTurnEntryIndexes(encounter, res);
   if (!turnEntryIndexes) return;
@@ -210,6 +246,8 @@ export const nextTurn = async (req, res) => {
 export const previousTurn = async (req, res) => {
   const encounter = await findEncounterOrRespond(req, res);
   if (!encounter) return;
+  if (rejectCompletedEncounterMutation(encounter, res)) return;
+
 
   const turnEntryIndexes = getRequiredTurnEntryIndexes(encounter, res);
   if (!turnEntryIndexes) return;
@@ -237,6 +275,7 @@ export const updateCurrentTurn = async (req, res) => {
 
   const encounter = await findEncounterOrRespond(req, res);
   if (!encounter) return;
+  if (rejectCompletedEncounterMutation(encounter, res)) return;
 
   const turnEntryIndexes = getRequiredTurnEntryIndexes(encounter, res);
   if (!turnEntryIndexes) return;
