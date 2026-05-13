@@ -8,6 +8,7 @@ import campaignRoutes from "./routes/campaignRoutes.js";
 import characterRoutes from "./routes/characterRoutes.js";
 import encounterRoutes from "./routes/encounterRoutes.js";
 import initiativeEntryRoutes from "./routes/initiativeEntryRoutes.js";
+import publicLevelUpRoutes from "./routes/publicLevelUpRoutes.js";
 
 import protectRoute from "./middleware/auth.middleware.js";
 
@@ -37,6 +38,7 @@ app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 app.use("/api/auth", authRoutes);
+app.use("/api/public/level-up-sessions", publicLevelUpRoutes);
 
 app.use("/api/campaigns", protectRoute, campaignRoutes);
 app.use("/api/characters", protectRoute, characterRoutes);

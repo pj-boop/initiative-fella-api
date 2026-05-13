@@ -10,6 +10,7 @@ const allowedUpdateFields = [
   "name",
   "type",
   "disposition",
+  "level",
   "maxHp",
   "armorClass",
   "initiativeBonus",
@@ -91,7 +92,7 @@ export const getCharacters = async (req, res) => {
 };
 
 export const createCharacter = async (req, res) => {
-  const { campaignId, name, type, disposition, maxHp, armorClass, initiativeBonus, stats, consumables, notes } = req.body;
+  const { campaignId, name, type, disposition, level, maxHp, armorClass, initiativeBonus, stats, consumables, notes } = req.body;
 
   if (!campaignId || !name || !type || maxHp === undefined || maxHp === null) {
     return res.status(400).json({ message: "campaignId, name, type, and maxHp are required" });
@@ -109,6 +110,7 @@ export const createCharacter = async (req, res) => {
     name,
     type,
     disposition,
+    level,
     maxHp,
     armorClass,
     initiativeBonus,
