@@ -26,10 +26,25 @@ for (const key of requiredEnv) {
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-const corsOptions =
-  process.env.NODE_ENV === "production"
-    ? { origin: process.env.CLIENT_URL }
-    : { origin: "http://localhost:5173" };
+const allowedOrigins = [
+  process.env.CLIENT_URL,
+  process.env.PUBLIC_WEB_APP_URL,
+  "http://localhost:5173",
+  "http://localhost:8081",
+].filter(Boolean);
+
+const corsOptions = {
+  origin(origin, callback) {
+    // Allow mobile/native clients and same-origin/non-browser requests.
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    return callback(new Error(`Not allowed by CORS: ${origin}`));
+  },
+};
 
 // If the frontend uses cookies in the future, add `credentials: true` here
 // and send matching credentials from frontend requests.

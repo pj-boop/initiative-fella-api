@@ -12,6 +12,8 @@ import {
   acceptAllLevelUpSubmissions,
   createLevelUpSession,
   discardAllLevelUpSubmissions,
+  listLevelUpSessions,
+  regenerateLevelUpSessionLink,
   reviewLevelUpSession,
 } from "../controllers/levelUpSessionController.js";
 import asyncHandler from "../middleware/asyncHandler.middleware.js";
@@ -30,10 +32,21 @@ router.post(
   asyncHandler(createLevelUpSession)
 );
 router.get(
+  "/:campaignId/level-up-sessions",
+  validateCampaignId,
+  asyncHandler(listLevelUpSessions)
+);
+router.get(
   "/:campaignId/level-up-sessions/:sessionId",
   validateCampaignId,
   validateSessionId,
   asyncHandler(reviewLevelUpSession)
+);
+router.post(
+  "/:campaignId/level-up-sessions/:sessionId/regenerate-link",
+  validateCampaignId,
+  validateSessionId,
+  asyncHandler(regenerateLevelUpSessionLink)
 );
 router.post(
   "/:campaignId/level-up-sessions/:sessionId/accept-all",

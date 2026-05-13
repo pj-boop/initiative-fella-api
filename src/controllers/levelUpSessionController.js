@@ -9,6 +9,7 @@ const patchFields = ["level", "maxHp", "armorClass", "initiativeBonus", "notes"]
 const snapshotFields = ["level", "maxHp", "armorClass", "initiativeBonus", "notes"];
 const defaultExpiryHours = 48;
 const maxExpiryHours = 24 * 14;
+const levelUpStatuses = ["open", "completed", "discarded", "closed"];
 
 const hashToken = (token) => crypto.createHash("sha256").update(token).digest("hex");
 const createPublicToken = () => crypto.randomBytes(32).toString("base64url");
@@ -102,11 +103,31 @@ const buildReviewSession = (session) => ({
   updatedAt: session.updatedAt,
 });
 
+const buildSessionSummary = (session, submittedCount = 0) => ({
+  ...buildReviewSession(session),
+  submittedCount,
+  totalCharacterCount: session.allowedCharacterIds.length,
+});
+
+const findUserLevelUpSession = (sessionId, campaignId, userId) => {
+  return LevelUpSession.findOne({
+    _id: sessionId,
+    campaign: campaignId,
+    user: userId,
+  });
+};
+
 export const createLevelUpSession = async (req, res) => {
   const campaign = await findUserCampaign(req.params.campaignId, req.user._id);
 
   if (!campaign) {
     return res.status(404).json({ message: "Campaign not found" });
+  }
+
+  if (!campaign.defaultPartyCharacterIds?.length) {
+    return res.status(400).json({
+      message: "Add party characters before opening a level-up session",
+    });
   }
 
   const { title, targetLevel, expiresInHours = defaultExpiryHours } = req.body;
@@ -144,6 +165,80 @@ export const createLevelUpSession = async (req, res) => {
   });
 };
 
+export const listLevelUpSessions = async (req, res) => {
+  const campaign = await findUserCampaign(req.params.campaignId, req.user._id);
+  if (!campaign) return res.status(404).json({ message: "Campaign not found" });
+
+  const query = {
+    campaign: campaign._id,
+    user: req.user._id,
+  };
+
+  if (req.query.status) {
+    if (!levelUpStatuses.includes(req.query.status)) {
+      return res.status(400).json({ message: `status must be one of: ${levelUpStatuses.join(", ")}` });
+    }
+
+    query.status = req.query.status;
+  }
+
+  const sessions = await LevelUpSession.find(query).sort({ createdAt: -1 });
+
+  await Promise.all(sessions.map((session) => closeExpiredSession(session)));
+
+  const sessionIds = sessions.map((session) => session._id);
+  const submissions = await LevelUpSubmission.find({
+    session: { $in: sessionIds },
+    campaign: campaign._id,
+    status: { $in: ["pending", "accepted"] },
+  }).select("session character");
+
+  const submittedCharacterIdsBySession = new Map();
+  for (const submission of submissions) {
+    const sessionId = submission.session.toString();
+    const characterId = submission.character.toString();
+
+    if (!submittedCharacterIdsBySession.has(sessionId)) {
+      submittedCharacterIdsBySession.set(sessionId, new Set());
+    }
+
+    submittedCharacterIdsBySession.get(sessionId).add(characterId);
+  }
+
+  const visibleSessions = req.query.status
+    ? sessions.filter((session) => session.status === req.query.status)
+    : sessions;
+
+  return res.status(200).json(
+    visibleSessions.map((session) =>
+      buildSessionSummary(session, submittedCharacterIdsBySession.get(session._id.toString())?.size ?? 0)
+    )
+  );
+};
+
+export const regenerateLevelUpSessionLink = async (req, res) => {
+  const campaign = await findUserCampaign(req.params.campaignId, req.user._id);
+  if (!campaign) return res.status(404).json({ message: "Campaign not found" });
+
+  const session = await findUserLevelUpSession(req.params.sessionId, campaign._id, req.user._id);
+  if (!session) return res.status(404).json({ message: "Level-up session not found" });
+
+  await closeExpiredSession(session);
+  if (session.status !== "open") {
+    return res.status(400).json({ message: "Level-up session is not open" });
+  }
+
+  const publicToken = createPublicToken();
+  session.tokenHash = hashToken(publicToken);
+  await session.save();
+
+  return res.status(200).json({
+    sessionId: session._id,
+    publicToken,
+    publicUrl: buildPublicUrl(publicToken),
+  });
+};
+
 export const getPublicLevelUpSession = async (req, res) => {
   const { session, errorStatus, message } = await getOpenPublicSession(req.params.token);
   if (!session) return res.status(errorStatus).json({ message });
@@ -165,6 +260,7 @@ export const getPublicLevelUpSession = async (req, res) => {
     targetLevel: session.targetLevel,
     campaignName: campaign.name,
     status: session.status,
+    expiresAt: session.expiresAt,
     characters: characters.map((character) => ({
       id: character._id,
       name: character.name,
@@ -203,7 +299,6 @@ export const submitLevelUpCharacterUpdate = async (req, res) => {
       session: session._id,
       campaign: session.campaign,
       character: character._id,
-      status: "pending",
     },
     {
       $set: {
@@ -237,11 +332,7 @@ export const reviewLevelUpSession = async (req, res) => {
   const campaign = await findUserCampaign(req.params.campaignId, req.user._id);
   if (!campaign) return res.status(404).json({ message: "Campaign not found" });
 
-  const session = await LevelUpSession.findOne({
-    _id: req.params.sessionId,
-    campaign: campaign._id,
-    user: req.user._id,
-  });
+  const session = await findUserLevelUpSession(req.params.sessionId, campaign._id, req.user._id);
 
   if (!session) return res.status(404).json({ message: "Level-up session not found" });
 
@@ -273,7 +364,10 @@ export const reviewLevelUpSession = async (req, res) => {
     })),
     missingCharacters: characters
       .filter((character) => !submittedCharacterIds.has(character._id.toString()))
-      .map((character) => character.name),
+      .map((character) => ({
+        id: character._id,
+        name: character.name,
+      })),
   });
 };
 
@@ -281,11 +375,7 @@ export const acceptAllLevelUpSubmissions = async (req, res) => {
   const campaign = await findUserCampaign(req.params.campaignId, req.user._id);
   if (!campaign) return res.status(404).json({ message: "Campaign not found" });
 
-  const session = await LevelUpSession.findOne({
-    _id: req.params.sessionId,
-    campaign: campaign._id,
-    user: req.user._id,
-  });
+  const session = await findUserLevelUpSession(req.params.sessionId, campaign._id, req.user._id);
 
   if (!session) return res.status(404).json({ message: "Level-up session not found" });
 
@@ -333,11 +423,7 @@ export const discardAllLevelUpSubmissions = async (req, res) => {
   const campaign = await findUserCampaign(req.params.campaignId, req.user._id);
   if (!campaign) return res.status(404).json({ message: "Campaign not found" });
 
-  const session = await LevelUpSession.findOne({
-    _id: req.params.sessionId,
-    campaign: campaign._id,
-    user: req.user._id,
-  });
+  const session = await findUserLevelUpSession(req.params.sessionId, campaign._id, req.user._id);
 
   if (!session) return res.status(404).json({ message: "Level-up session not found" });
 

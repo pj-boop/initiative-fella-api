@@ -49,7 +49,7 @@ const levelUpSubmissionSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-levelUpSubmissionSchema.index({ session: 1, character: 1, status: 1 });
+levelUpSubmissionSchema.index({ session: 1, character: 1 }, { unique: true });
 
 const LevelUpSubmission = mongoose.model("LevelUpSubmission", levelUpSubmissionSchema);
 
