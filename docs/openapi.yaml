@@ -285,6 +285,33 @@ paths:
   /api/campaigns/{campaignId}/level-up-sessions:
     parameters:
       - $ref: '#/components/parameters/CampaignId'
+    get:
+      tags: [Level-Up Sessions]
+      summary: List level-up sessions
+      description: Returns the campaign's level-up sessions sorted newest first. Optionally filter by status.
+      parameters:
+        - in: query
+          name: status
+          required: false
+          schema:
+            $ref: '#/components/schemas/LevelUpStatus'
+      responses:
+        '200':
+          description: Level-up sessions found.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LevelUpSessionSummary'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
     post:
       tags: [Level-Up Sessions]
       summary: Open a level-up session
@@ -317,7 +344,7 @@ paths:
     get:
       tags: [Level-Up Sessions]
       summary: Review a level-up session
-      description: Returns submissions and names of allowed characters that have not submitted a pending or accepted update.
+      description: Returns submissions and allowed character records that have not submitted a pending or accepted update.
       responses:
         '200':
           description: Level-up session review data.
@@ -325,6 +352,29 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/LevelUpSessionReviewResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/campaigns/{campaignId}/level-up-sessions/{sessionId}/regenerate-link:
+    parameters:
+      - $ref: '#/components/parameters/CampaignId'
+      - $ref: '#/components/parameters/LevelUpSessionId'
+    post:
+      tags: [Level-Up Sessions]
+      summary: Regenerate a level-up session public link
+      description: Replaces the hashed public token for an open session and returns a new public URL.
+      responses:
+        '200':
+          description: Level-up session public link regenerated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateLevelUpSessionResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -1756,6 +1806,20 @@ components:
           $ref: '#/components/schemas/DateTime'
         updatedAt:
           $ref: '#/components/schemas/DateTime'
+    LevelUpSessionSummary:
+      allOf:
+        - $ref: '#/components/schemas/LevelUpSession'
+        - type: object
+          required: [submittedCount, totalCharacterCount]
+          properties:
+            submittedCount:
+              type: integer
+              minimum: 0
+              example: 2
+            totalCharacterCount:
+              type: integer
+              minimum: 0
+              example: 5
     CreateLevelUpSessionRequest:
       type: object
       required: [title, targetLevel]
@@ -1809,7 +1873,7 @@ components:
           example: 3
     PublicLevelUpSessionResponse:
       type: object
-      required: [title, targetLevel, campaignName, status, characters]
+      required: [title, targetLevel, campaignName, status, expiresAt, characters]
       properties:
         title:
           type: string
@@ -1822,6 +1886,8 @@ components:
           example: Curse of Strahd
         status:
           $ref: '#/components/schemas/LevelUpStatus'
+        expiresAt:
+          $ref: '#/components/schemas/DateTime'
         characters:
           type: array
           items:
@@ -1845,6 +1911,15 @@ components:
           $ref: '#/components/schemas/LevelUpSubmissionStatus'
         characterId:
           $ref: '#/components/schemas/ObjectId'
+    LevelUpMissingCharacter:
+      type: object
+      required: [id, name]
+      properties:
+        id:
+          $ref: '#/components/schemas/ObjectId'
+        name:
+          type: string
+          example: Mira
     LevelUpSubmissionReview:
       type: object
       required: [id, characterId, characterName, previousSnapshot, patch, status, createdAt, updatedAt]
@@ -1881,8 +1956,7 @@ components:
         missingCharacters:
           type: array
           items:
-            type: string
-          example: [Mira, Brakka]
+            $ref: '#/components/schemas/LevelUpMissingCharacter'
     LevelUpBulkActionResponse:
       type: object
       properties:
