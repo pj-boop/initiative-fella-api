@@ -67,6 +67,14 @@ const characterSchema = new mongoose.Schema(
       },
     },
 
+    level: {
+      type: Number,
+      default: 1,
+      min: 1,
+      max: 20,
+      validate: integerValidator,
+    },
+
     maxHp: {
       type: Number,
       required: true,

@@ -2,6 +2,8 @@ import mongoose from "mongoose";
 import Campaign from "../models/Campaign.js";
 import Character from "../models/Character.js";
 import Encounter from "../models/Encounter.js";
+import LevelUpSession from "../models/LevelUpSession.js";
+import LevelUpSubmission from "../models/LevelUpSubmission.js";
 import { pickAllowedFields } from "../utils/pickAllowedFields.js";
 
 const allowedCampaignUpdateFields = ["name", "notes", "defaultPartyCharacterIds"];
@@ -152,6 +154,13 @@ export const deleteCampaign = async (req, res) => {
     }),
     Encounter.deleteMany({
       user: req.user._id,
+      campaign: campaign._id,
+    }),
+    LevelUpSession.deleteMany({
+      user: req.user._id,
+      campaign: campaign._id,
+    }),
+    LevelUpSubmission.deleteMany({
       campaign: campaign._id,
     }),
     Campaign.deleteOne({
