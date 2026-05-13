@@ -21,6 +21,8 @@ tags:
     description: Encounter lifecycle, initiative order, and turns.
   - name: Initiative Entries
     description: Entries, HP, conditions, and consumables inside an encounter.
+  - name: Level-Up Sessions
+    description: Authenticated DM workflows and public player submissions for character level updates.
 security:
   - bearerAuth: []
 paths:
@@ -277,6 +279,213 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '404':
           $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/campaigns/{campaignId}/level-up-sessions:
+    parameters:
+      - $ref: '#/components/parameters/CampaignId'
+    get:
+      tags: [Level-Up Sessions]
+      summary: List level-up sessions
+      description: Returns the campaign's level-up sessions sorted newest first. Optionally filter by status.
+      parameters:
+        - in: query
+          name: status
+          required: false
+          schema:
+            $ref: '#/components/schemas/LevelUpStatus'
+      responses:
+        '200':
+          description: Level-up sessions found.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LevelUpSessionSummary'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      tags: [Level-Up Sessions]
+      summary: Open a level-up session
+      description: Creates a public token for the campaign's default party characters.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateLevelUpSessionRequest'
+      responses:
+        '201':
+          description: Level-up session opened.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateLevelUpSessionResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/campaigns/{campaignId}/level-up-sessions/{sessionId}:
+    parameters:
+      - $ref: '#/components/parameters/CampaignId'
+      - $ref: '#/components/parameters/LevelUpSessionId'
+    get:
+      tags: [Level-Up Sessions]
+      summary: Review a level-up session
+      description: Returns submissions and allowed character records that have not submitted a pending or accepted update.
+      responses:
+        '200':
+          description: Level-up session review data.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LevelUpSessionReviewResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/campaigns/{campaignId}/level-up-sessions/{sessionId}/regenerate-link:
+    parameters:
+      - $ref: '#/components/parameters/CampaignId'
+      - $ref: '#/components/parameters/LevelUpSessionId'
+    post:
+      tags: [Level-Up Sessions]
+      summary: Regenerate a level-up session public link
+      description: Replaces the hashed public token for an open session and returns a new public URL.
+      responses:
+        '200':
+          description: Level-up session public link regenerated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateLevelUpSessionResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/campaigns/{campaignId}/level-up-sessions/{sessionId}/accept-all:
+    parameters:
+      - $ref: '#/components/parameters/CampaignId'
+      - $ref: '#/components/parameters/LevelUpSessionId'
+    post:
+      tags: [Level-Up Sessions]
+      summary: Accept all pending level-up submissions
+      description: Applies each pending patch to its character, marks submissions accepted, completes the session, and invalidates the public token.
+      responses:
+        '200':
+          description: Pending submissions accepted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LevelUpBulkActionResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/campaigns/{campaignId}/level-up-sessions/{sessionId}/discard-all:
+    parameters:
+      - $ref: '#/components/parameters/CampaignId'
+      - $ref: '#/components/parameters/LevelUpSessionId'
+    post:
+      tags: [Level-Up Sessions]
+      summary: Discard all pending level-up submissions
+      description: Marks pending submissions discarded, discards the session, invalidates the public token, and leaves characters unchanged.
+      responses:
+        '200':
+          description: Pending submissions discarded.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LevelUpBulkActionResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/public/level-up-sessions/{token}:
+    parameters:
+      - $ref: '#/components/parameters/LevelUpToken'
+    get:
+      tags: [Level-Up Sessions]
+      summary: Get public level-up session details
+      security: []
+      description: Returns safe public session data without user ids, token hashes, or private campaign data.
+      responses:
+        '200':
+          description: Public level-up session details.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicLevelUpSessionResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '410':
+          description: Level-up session is no longer open.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /api/public/level-up-sessions/{token}/characters/{characterId}/submissions:
+    parameters:
+      - $ref: '#/components/parameters/LevelUpToken'
+      - $ref: '#/components/parameters/CharacterId'
+    post:
+      tags: [Level-Up Sessions]
+      summary: Submit a public character level-up update
+      security: []
+      description: Creates or replaces the pending submission for a character without immediately changing the character.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubmitLevelUpSubmissionRequest'
+      responses:
+        '200':
+          description: Pending submission created or replaced.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubmitLevelUpSubmissionResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '410':
+          description: Level-up session is no longer open.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '500':
           $ref: '#/components/responses/InternalServerError'
   /api/characters:
@@ -1073,6 +1282,20 @@ components:
       required: true
       schema:
         $ref: '#/components/schemas/ObjectId'
+    LevelUpSessionId:
+      name: sessionId
+      in: path
+      required: true
+      schema:
+        $ref: '#/components/schemas/ObjectId'
+      description: Level-up session identifier.
+    LevelUpToken:
+      name: token
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Public level-up session token.
     EncounterId:
       name: encounterId
       in: path
@@ -1372,7 +1595,7 @@ components:
             $ref: '#/components/schemas/ObjectId'
     Character:
       type: object
-      required: [_id, user, campaign, name, type, disposition, maxHp, armorClass, initiativeBonus, stats, consumables, notes, createdAt, updatedAt]
+      required: [_id, user, campaign, name, type, disposition, level, maxHp, armorClass, initiativeBonus, stats, consumables, notes, createdAt, updatedAt]
       properties:
         _id:
           $ref: '#/components/schemas/ObjectId'
@@ -1387,6 +1610,12 @@ components:
           $ref: '#/components/schemas/CharacterType'
         disposition:
           $ref: '#/components/schemas/CharacterDisposition'
+        level:
+          type: integer
+          minimum: 1
+          maximum: 20
+          default: 1
+          example: 7
         maxHp:
           type: integer
           minimum: 0
@@ -1435,6 +1664,12 @@ components:
           $ref: '#/components/schemas/CharacterType'
         disposition:
           $ref: '#/components/schemas/CharacterDisposition'
+        level:
+          type: integer
+          minimum: 1
+          maximum: 20
+          default: 1
+          example: 7
         maxHp:
           type: integer
           minimum: 0
@@ -1468,6 +1703,12 @@ components:
           $ref: '#/components/schemas/CharacterType'
         disposition:
           $ref: '#/components/schemas/CharacterDisposition'
+        level:
+          type: integer
+          minimum: 1
+          maximum: 20
+          default: 1
+          example: 7
         maxHp:
           type: integer
           minimum: 0
@@ -1485,6 +1726,248 @@ components:
             $ref: '#/components/schemas/Consumable'
         notes:
           type: string
+
+    LevelUpStatus:
+      type: string
+      enum: [open, completed, discarded, closed]
+    LevelUpSubmissionStatus:
+      type: string
+      enum: [pending, accepted, discarded]
+    LevelUpPatch:
+      type: object
+      minProperties: 1
+      additionalProperties: false
+      properties:
+        level:
+          type: integer
+          minimum: 1
+          maximum: 20
+          example: 8
+        maxHp:
+          type: integer
+          minimum: 1
+          example: 61
+        armorClass:
+          type: integer
+          minimum: 1
+          maximum: 40
+          example: 17
+        initiativeBonus:
+          type: integer
+          minimum: -20
+          maximum: 30
+          example: 4
+        notes:
+          type: string
+          example: Took Sentinel feat
+    LevelUpSnapshot:
+      type: object
+      additionalProperties: true
+      properties:
+        level:
+          type: integer
+          example: 7
+        maxHp:
+          type: integer
+          example: 52
+        armorClass:
+          type: integer
+          example: 16
+        initiativeBonus:
+          type: integer
+          example: 3
+        notes:
+          type: string
+    LevelUpSession:
+      type: object
+      required: [id, campaign, title, targetLevel, status, expiresAt, allowedCharacterIds, createdAt, updatedAt]
+      properties:
+        id:
+          $ref: '#/components/schemas/ObjectId'
+        campaign:
+          $ref: '#/components/schemas/ObjectId'
+        title:
+          type: string
+          example: Level 8 Update
+        targetLevel:
+          type: integer
+          minimum: 1
+          maximum: 20
+          example: 8
+        status:
+          $ref: '#/components/schemas/LevelUpStatus'
+        expiresAt:
+          $ref: '#/components/schemas/DateTime'
+        allowedCharacterIds:
+          type: array
+          items:
+            $ref: '#/components/schemas/ObjectId'
+        createdAt:
+          $ref: '#/components/schemas/DateTime'
+        updatedAt:
+          $ref: '#/components/schemas/DateTime'
+    LevelUpSessionSummary:
+      allOf:
+        - $ref: '#/components/schemas/LevelUpSession'
+        - type: object
+          required: [submittedCount, totalCharacterCount]
+          properties:
+            submittedCount:
+              type: integer
+              minimum: 0
+              example: 2
+            totalCharacterCount:
+              type: integer
+              minimum: 0
+              example: 5
+    CreateLevelUpSessionRequest:
+      type: object
+      required: [title, targetLevel]
+      additionalProperties: false
+      properties:
+        title:
+          type: string
+          example: Level 8 Update
+        targetLevel:
+          type: integer
+          minimum: 1
+          maximum: 20
+          example: 8
+        expiresInHours:
+          type: number
+          exclusiveMinimum: 0
+          default: 48
+          example: 48
+    CreateLevelUpSessionResponse:
+      type: object
+      required: [sessionId, publicToken, publicUrl]
+      properties:
+        sessionId:
+          $ref: '#/components/schemas/ObjectId'
+        publicToken:
+          type: string
+        publicUrl:
+          type: string
+          format: uri
+          example: https://your-web-app.com/level-up/abc123
+    PublicLevelUpCharacter:
+      type: object
+      required: [id, name, level, maxHp, armorClass, initiativeBonus]
+      properties:
+        id:
+          $ref: '#/components/schemas/ObjectId'
+        name:
+          type: string
+          example: Tharion
+        level:
+          type: integer
+          example: 7
+        maxHp:
+          type: integer
+          example: 52
+        armorClass:
+          type: integer
+          example: 16
+        initiativeBonus:
+          type: integer
+          example: 3
+    PublicLevelUpSessionResponse:
+      type: object
+      required: [title, targetLevel, campaignName, status, expiresAt, characters]
+      properties:
+        title:
+          type: string
+          example: Level 8 Update
+        targetLevel:
+          type: integer
+          example: 8
+        campaignName:
+          type: string
+          example: Curse of Strahd
+        status:
+          $ref: '#/components/schemas/LevelUpStatus'
+        expiresAt:
+          $ref: '#/components/schemas/DateTime'
+        characters:
+          type: array
+          items:
+            $ref: '#/components/schemas/PublicLevelUpCharacter'
+    SubmitLevelUpSubmissionRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        submittedByName:
+          type: string
+          example: Alyssa
+        patch:
+          $ref: '#/components/schemas/LevelUpPatch'
+    SubmitLevelUpSubmissionResponse:
+      type: object
+      required: [submissionId, status, characterId]
+      properties:
+        submissionId:
+          $ref: '#/components/schemas/ObjectId'
+        status:
+          $ref: '#/components/schemas/LevelUpSubmissionStatus'
+        characterId:
+          $ref: '#/components/schemas/ObjectId'
+    LevelUpMissingCharacter:
+      type: object
+      required: [id, name]
+      properties:
+        id:
+          $ref: '#/components/schemas/ObjectId'
+        name:
+          type: string
+          example: Mira
+    LevelUpSubmissionReview:
+      type: object
+      required: [id, characterId, characterName, previousSnapshot, patch, status, createdAt, updatedAt]
+      properties:
+        id:
+          $ref: '#/components/schemas/ObjectId'
+        characterId:
+          $ref: '#/components/schemas/ObjectId'
+        characterName:
+          type: string
+          example: Tharion
+        submittedByName:
+          type: string
+        previousSnapshot:
+          $ref: '#/components/schemas/LevelUpSnapshot'
+        patch:
+          $ref: '#/components/schemas/LevelUpPatch'
+        status:
+          $ref: '#/components/schemas/LevelUpSubmissionStatus'
+        createdAt:
+          $ref: '#/components/schemas/DateTime'
+        updatedAt:
+          $ref: '#/components/schemas/DateTime'
+    LevelUpSessionReviewResponse:
+      type: object
+      required: [session, submissions, missingCharacters]
+      properties:
+        session:
+          $ref: '#/components/schemas/LevelUpSession'
+        submissions:
+          type: array
+          items:
+            $ref: '#/components/schemas/LevelUpSubmissionReview'
+        missingCharacters:
+          type: array
+          items:
+            $ref: '#/components/schemas/LevelUpMissingCharacter'
+    LevelUpBulkActionResponse:
+      type: object
+      properties:
+        message:
+          type: string
+        acceptedCount:
+          type: integer
+        discardedCount:
+          type: integer
+        session:
+          $ref: '#/components/schemas/LevelUpSession'
     Encounter:
       type: object
       required: [_id, user, campaign, name, status, round, currentTurnIndex, entries, notes, createdAt, updatedAt]
@@ -1565,6 +2048,12 @@ components:
           $ref: '#/components/schemas/CharacterType'
         disposition:
           $ref: '#/components/schemas/CharacterDisposition'
+        level:
+          type: integer
+          minimum: 1
+          maximum: 20
+          default: 1
+          example: 7
         maxHp:
           type: integer
           minimum: 0
@@ -1636,6 +2125,12 @@ components:
           $ref: '#/components/schemas/CharacterType'
         disposition:
           $ref: '#/components/schemas/CharacterDisposition'
+        level:
+          type: integer
+          minimum: 1
+          maximum: 20
+          default: 1
+          example: 7
         maxHp:
           type: integer
           minimum: 0
@@ -1697,6 +2192,12 @@ components:
           $ref: '#/components/schemas/CharacterType'
         disposition:
           $ref: '#/components/schemas/CharacterDisposition'
+        level:
+          type: integer
+          minimum: 1
+          maximum: 20
+          default: 1
+          example: 7
         maxHp:
           type: integer
           minimum: 0

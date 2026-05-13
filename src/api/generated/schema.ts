@@ -435,6 +435,411 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/campaigns/{campaignId}/level-up-sessions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                campaignId: components["parameters"]["CampaignId"];
+            };
+            cookie?: never;
+        };
+        /**
+         * List level-up sessions
+         * @description Returns the campaign's level-up sessions sorted newest first. Optionally filter by status.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    status?: components["schemas"]["LevelUpStatus"];
+                };
+                header?: never;
+                path: {
+                    campaignId: components["parameters"]["CampaignId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Level-up sessions found. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["LevelUpSessionSummary"][];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                401: components["responses"]["Unauthorized"];
+                404: components["responses"]["NotFound"];
+                500: components["responses"]["InternalServerError"];
+            };
+        };
+        put?: never;
+        /**
+         * Open a level-up session
+         * @description Creates a public token for the campaign's default party characters.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    campaignId: components["parameters"]["CampaignId"];
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateLevelUpSessionRequest"];
+                };
+            };
+            responses: {
+                /** @description Level-up session opened. */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CreateLevelUpSessionResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                401: components["responses"]["Unauthorized"];
+                404: components["responses"]["NotFound"];
+                500: components["responses"]["InternalServerError"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/campaigns/{campaignId}/level-up-sessions/{sessionId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                campaignId: components["parameters"]["CampaignId"];
+                /** @description Level-up session identifier. */
+                sessionId: components["parameters"]["LevelUpSessionId"];
+            };
+            cookie?: never;
+        };
+        /**
+         * Review a level-up session
+         * @description Returns submissions and allowed character records that have not submitted a pending or accepted update.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    campaignId: components["parameters"]["CampaignId"];
+                    /** @description Level-up session identifier. */
+                    sessionId: components["parameters"]["LevelUpSessionId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Level-up session review data. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["LevelUpSessionReviewResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                401: components["responses"]["Unauthorized"];
+                404: components["responses"]["NotFound"];
+                500: components["responses"]["InternalServerError"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/campaigns/{campaignId}/level-up-sessions/{sessionId}/regenerate-link": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                campaignId: components["parameters"]["CampaignId"];
+                /** @description Level-up session identifier. */
+                sessionId: components["parameters"]["LevelUpSessionId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Regenerate a level-up session public link
+         * @description Replaces the hashed public token for an open session and returns a new public URL.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    campaignId: components["parameters"]["CampaignId"];
+                    /** @description Level-up session identifier. */
+                    sessionId: components["parameters"]["LevelUpSessionId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Level-up session public link regenerated. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CreateLevelUpSessionResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                401: components["responses"]["Unauthorized"];
+                404: components["responses"]["NotFound"];
+                500: components["responses"]["InternalServerError"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/campaigns/{campaignId}/level-up-sessions/{sessionId}/accept-all": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                campaignId: components["parameters"]["CampaignId"];
+                /** @description Level-up session identifier. */
+                sessionId: components["parameters"]["LevelUpSessionId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Accept all pending level-up submissions
+         * @description Applies each pending patch to its character, marks submissions accepted, completes the session, and invalidates the public token.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    campaignId: components["parameters"]["CampaignId"];
+                    /** @description Level-up session identifier. */
+                    sessionId: components["parameters"]["LevelUpSessionId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Pending submissions accepted. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["LevelUpBulkActionResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                401: components["responses"]["Unauthorized"];
+                404: components["responses"]["NotFound"];
+                500: components["responses"]["InternalServerError"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/campaigns/{campaignId}/level-up-sessions/{sessionId}/discard-all": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                campaignId: components["parameters"]["CampaignId"];
+                /** @description Level-up session identifier. */
+                sessionId: components["parameters"]["LevelUpSessionId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Discard all pending level-up submissions
+         * @description Marks pending submissions discarded, discards the session, invalidates the public token, and leaves characters unchanged.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    campaignId: components["parameters"]["CampaignId"];
+                    /** @description Level-up session identifier. */
+                    sessionId: components["parameters"]["LevelUpSessionId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Pending submissions discarded. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["LevelUpBulkActionResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                401: components["responses"]["Unauthorized"];
+                404: components["responses"]["NotFound"];
+                500: components["responses"]["InternalServerError"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/public/level-up-sessions/{token}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Public level-up session token. */
+                token: components["parameters"]["LevelUpToken"];
+            };
+            cookie?: never;
+        };
+        /**
+         * Get public level-up session details
+         * @description Returns safe public session data without user ids, token hashes, or private campaign data.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Public level-up session token. */
+                    token: components["parameters"]["LevelUpToken"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Public level-up session details. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PublicLevelUpSessionResponse"];
+                    };
+                };
+                404: components["responses"]["NotFound"];
+                /** @description Level-up session is no longer open. */
+                410: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiError"];
+                    };
+                };
+                500: components["responses"]["InternalServerError"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/public/level-up-sessions/{token}/characters/{characterId}/submissions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description Public level-up session token. */
+                token: components["parameters"]["LevelUpToken"];
+                characterId: components["parameters"]["CharacterId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Submit a public character level-up update
+         * @description Creates or replaces the pending submission for a character without immediately changing the character.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Public level-up session token. */
+                    token: components["parameters"]["LevelUpToken"];
+                    characterId: components["parameters"]["CharacterId"];
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SubmitLevelUpSubmissionRequest"];
+                };
+            };
+            responses: {
+                /** @description Pending submission created or replaced. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SubmitLevelUpSubmissionResponse"];
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                404: components["responses"]["NotFound"];
+                /** @description Level-up session is no longer open. */
+                410: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiError"];
+                    };
+                };
+                500: components["responses"]["InternalServerError"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/characters": {
         parameters: {
             query?: never;
@@ -1891,6 +2296,11 @@ export interface components {
             name: string;
             type: components["schemas"]["CharacterType"];
             disposition: components["schemas"]["CharacterDisposition"];
+            /**
+             * @default 1
+             * @example 7
+             */
+            level: number;
             /** @example 42 */
             maxHp: number;
             /**
@@ -1932,6 +2342,11 @@ export interface components {
             name: string;
             type: components["schemas"]["CharacterType"];
             disposition?: components["schemas"]["CharacterDisposition"];
+            /**
+             * @default 1
+             * @example 7
+             */
+            level: number;
             maxHp: number;
             /** @default 10 */
             armorClass: number;
@@ -1950,6 +2365,11 @@ export interface components {
             name?: string;
             type?: components["schemas"]["CharacterType"];
             disposition?: components["schemas"]["CharacterDisposition"];
+            /**
+             * @default 1
+             * @example 7
+             */
+            level: number;
             maxHp?: number;
             armorClass?: number;
             initiativeBonus?: number;
@@ -1958,6 +2378,136 @@ export interface components {
             };
             consumables?: components["schemas"]["Consumable"][];
             notes?: string;
+        };
+        /** @enum {string} */
+        LevelUpStatus: "open" | "completed" | "discarded" | "closed";
+        /** @enum {string} */
+        LevelUpSubmissionStatus: "pending" | "accepted" | "discarded";
+        LevelUpPatch: {
+            /** @example 8 */
+            level?: number;
+            /** @example 61 */
+            maxHp?: number;
+            /** @example 17 */
+            armorClass?: number;
+            /** @example 4 */
+            initiativeBonus?: number;
+            /** @example Took Sentinel feat */
+            notes?: string;
+        };
+        LevelUpSnapshot: {
+            /** @example 7 */
+            level?: number;
+            /** @example 52 */
+            maxHp?: number;
+            /** @example 16 */
+            armorClass?: number;
+            /** @example 3 */
+            initiativeBonus?: number;
+            notes?: string;
+        } & {
+            [key: string]: unknown;
+        };
+        LevelUpSession: {
+            id: components["schemas"]["ObjectId"];
+            campaign: components["schemas"]["ObjectId"];
+            /** @example Level 8 Update */
+            title: string;
+            /** @example 8 */
+            targetLevel: number;
+            status: components["schemas"]["LevelUpStatus"];
+            expiresAt: components["schemas"]["DateTime"];
+            allowedCharacterIds: components["schemas"]["ObjectId"][];
+            createdAt: components["schemas"]["DateTime"];
+            updatedAt: components["schemas"]["DateTime"];
+        };
+        LevelUpSessionSummary: components["schemas"]["LevelUpSession"] & {
+            /** @example 2 */
+            submittedCount: number;
+            /** @example 5 */
+            totalCharacterCount: number;
+        };
+        CreateLevelUpSessionRequest: {
+            /** @example Level 8 Update */
+            title: string;
+            /** @example 8 */
+            targetLevel: number;
+            /**
+             * @default 48
+             * @example 48
+             */
+            expiresInHours: number;
+        };
+        CreateLevelUpSessionResponse: {
+            sessionId: components["schemas"]["ObjectId"];
+            publicToken: string;
+            /**
+             * Format: uri
+             * @example https://your-web-app.com/level-up/abc123
+             */
+            publicUrl: string;
+        };
+        PublicLevelUpCharacter: {
+            id: components["schemas"]["ObjectId"];
+            /** @example Tharion */
+            name: string;
+            /** @example 7 */
+            level: number;
+            /** @example 52 */
+            maxHp: number;
+            /** @example 16 */
+            armorClass: number;
+            /** @example 3 */
+            initiativeBonus: number;
+        };
+        PublicLevelUpSessionResponse: {
+            /** @example Level 8 Update */
+            title: string;
+            /** @example 8 */
+            targetLevel: number;
+            /** @example Curse of Strahd */
+            campaignName: string;
+            status: components["schemas"]["LevelUpStatus"];
+            expiresAt: components["schemas"]["DateTime"];
+            characters: components["schemas"]["PublicLevelUpCharacter"][];
+        };
+        SubmitLevelUpSubmissionRequest: {
+            /** @example Alyssa */
+            submittedByName?: string;
+            patch?: components["schemas"]["LevelUpPatch"];
+        };
+        SubmitLevelUpSubmissionResponse: {
+            submissionId: components["schemas"]["ObjectId"];
+            status: components["schemas"]["LevelUpSubmissionStatus"];
+            characterId: components["schemas"]["ObjectId"];
+        };
+        LevelUpMissingCharacter: {
+            id: components["schemas"]["ObjectId"];
+            /** @example Mira */
+            name: string;
+        };
+        LevelUpSubmissionReview: {
+            id: components["schemas"]["ObjectId"];
+            characterId: components["schemas"]["ObjectId"];
+            /** @example Tharion */
+            characterName: string;
+            submittedByName?: string;
+            previousSnapshot: components["schemas"]["LevelUpSnapshot"];
+            patch: components["schemas"]["LevelUpPatch"];
+            status: components["schemas"]["LevelUpSubmissionStatus"];
+            createdAt: components["schemas"]["DateTime"];
+            updatedAt: components["schemas"]["DateTime"];
+        };
+        LevelUpSessionReviewResponse: {
+            session: components["schemas"]["LevelUpSession"];
+            submissions: components["schemas"]["LevelUpSubmissionReview"][];
+            missingCharacters: components["schemas"]["LevelUpMissingCharacter"][];
+        };
+        LevelUpBulkActionResponse: {
+            message?: string;
+            acceptedCount?: number;
+            discardedCount?: number;
+            session?: components["schemas"]["LevelUpSession"];
         };
         Encounter: {
             _id: components["schemas"]["ObjectId"];
@@ -2001,6 +2551,11 @@ export interface components {
             name: string;
             type: components["schemas"]["CharacterType"];
             disposition: components["schemas"]["CharacterDisposition"];
+            /**
+             * @default 1
+             * @example 7
+             */
+            level: number;
             maxHp: number;
             /** @description Defaults to maxHp when omitted. */
             currentHp: number;
@@ -2038,6 +2593,11 @@ export interface components {
             name: string;
             type: components["schemas"]["CharacterType"];
             disposition?: components["schemas"]["CharacterDisposition"];
+            /**
+             * @default 1
+             * @example 7
+             */
+            level: number;
             maxHp: number;
             /** @description Defaults to maxHp when omitted. */
             currentHp?: number;
@@ -2071,6 +2631,11 @@ export interface components {
             name?: string;
             type?: components["schemas"]["CharacterType"];
             disposition?: components["schemas"]["CharacterDisposition"];
+            /**
+             * @default 1
+             * @example 7
+             */
+            level: number;
             maxHp?: number;
             currentHp?: number;
             tempHp?: number;
@@ -2268,6 +2833,10 @@ export interface components {
     parameters: {
         CampaignId: components["schemas"]["ObjectId"];
         CharacterId: components["schemas"]["ObjectId"];
+        /** @description Level-up session identifier. */
+        LevelUpSessionId: components["schemas"]["ObjectId"];
+        /** @description Public level-up session token. */
+        LevelUpToken: string;
         EncounterId: components["schemas"]["ObjectId"];
         EntryId: components["schemas"]["ObjectId"];
         ConsumableId: components["schemas"]["ObjectId"];
