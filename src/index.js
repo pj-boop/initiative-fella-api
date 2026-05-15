@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 import "dotenv/config";
-// import job from "./lib/cron.js";
+import job from "./lib/cron.js";
 
 import authRoutes from "./routes/authRoutes.js";
 import campaignRoutes from "./routes/campaignRoutes.js";
@@ -78,9 +78,9 @@ app.use((error, req, res, next) => {
   return res.status(500).json({ message: "Internal server error" });
 });
 
-// if (process.env.NODE_ENV === "production") {
-//   job.start();
-// }
+if (process.env.NODE_ENV === "production") {
+  job.start();
+}
 
 try {
   await connectDB();
