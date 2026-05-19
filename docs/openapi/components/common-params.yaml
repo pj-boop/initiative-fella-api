@@ -1,0 +1,72 @@
+CampaignId:
+  name: campaignId
+  in: path
+  required: true
+  schema:
+    $ref: '../../openapi.yaml#/components/schemas/ObjectId'
+CharacterId:
+  name: characterId
+  in: path
+  required: true
+  schema:
+    $ref: '../../openapi.yaml#/components/schemas/ObjectId'
+LevelUpSessionId:
+  name: sessionId
+  in: path
+  required: true
+  schema:
+    $ref: '../../openapi.yaml#/components/schemas/ObjectId'
+  description: Level-up session identifier.
+LevelUpToken:
+  name: token
+  in: path
+  required: true
+  schema:
+    type: string
+  description: Public level-up session token.
+EncounterId:
+  name: encounterId
+  in: path
+  required: true
+  schema:
+    $ref: '../../openapi.yaml#/components/schemas/ObjectId'
+EntryId:
+  name: entryId
+  in: path
+  required: true
+  schema:
+    $ref: '../../openapi.yaml#/components/schemas/ObjectId'
+ConsumableId:
+  name: consumableId
+  in: path
+  required: true
+  schema:
+    $ref: '../../openapi.yaml#/components/schemas/ObjectId'
+CampaignIdQuery:
+  name: campaignId
+  in: query
+  required: false
+  schema:
+    $ref: '../../openapi.yaml#/components/schemas/ObjectId'
+  description: Optional campaign filter.
+CharacterTypeQuery:
+  name: type
+  in: query
+  required: false
+  schema:
+    $ref: '../../openapi.yaml#/components/schemas/CharacterType'
+  description: Optional type filter. The backend lowercases the value before filtering.
+CharacterDispositionQuery:
+  name: disposition
+  in: query
+  required: false
+  schema:
+    $ref: '../../openapi.yaml#/components/schemas/CharacterDisposition'
+  description: Optional disposition filter. The backend lowercases the value before filtering.
+EncounterStatusQuery:
+  name: status
+  in: query
+  required: false
+  schema:
+    $ref: '../../openapi.yaml#/components/schemas/EncounterStatus'
+  description: Optional status filter. The backend lowercases the value before filtering.

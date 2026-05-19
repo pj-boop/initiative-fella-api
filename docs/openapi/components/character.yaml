@@ -1,0 +1,166 @@
+CharacterType:
+  type: string
+  enum:
+    - player
+    - npc
+    - monster
+CharacterDisposition:
+  type: string
+  enum:
+    - friendly
+    - hostile
+    - neutral
+Character:
+  type: object
+  required:
+    - _id
+    - user
+    - campaign
+    - name
+    - type
+    - disposition
+    - level
+    - maxHp
+    - armorClass
+    - initiativeBonus
+    - stats
+    - consumables
+    - notes
+    - createdAt
+    - updatedAt
+  properties:
+    _id:
+      $ref: '../../openapi.yaml#/components/schemas/ObjectId'
+    user:
+      $ref: '../../openapi.yaml#/components/schemas/ObjectId'
+    campaign:
+      $ref: '../../openapi.yaml#/components/schemas/ObjectId'
+    name:
+      type: string
+      example: Briv Stonehide
+    type:
+      $ref: '../../openapi.yaml#/components/schemas/CharacterType'
+    disposition:
+      $ref: '../../openapi.yaml#/components/schemas/CharacterDisposition'
+    level:
+      type: integer
+      minimum: 1
+      maximum: 20
+      default: 1
+      example: 7
+    maxHp:
+      type: integer
+      minimum: 0
+      example: 42
+    armorClass:
+      type: integer
+      minimum: 0
+      default: 10
+      example: 16
+    initiativeBonus:
+      type: integer
+      default: 0
+      example: 2
+    stats:
+      type: object
+      additionalProperties: true
+      default: {}
+      example:
+        str: 16
+        dex: 14
+        con: 15
+    consumables:
+      type: array
+      default: []
+      items:
+        $ref: '../../openapi.yaml#/components/schemas/Consumable'
+      description: >-
+        Character model stores consumables as mixed objects; this schema documents the supported consumable shape used
+        by encounter entries.
+    notes:
+      type: string
+      default: ''
+      example: Front-line fighter.
+    createdAt:
+      $ref: '../../openapi.yaml#/components/schemas/DateTime'
+    updatedAt:
+      $ref: '../../openapi.yaml#/components/schemas/DateTime'
+CreateCharacterRequest:
+  type: object
+  required:
+    - campaignId
+    - name
+    - type
+    - maxHp
+  additionalProperties: false
+  properties:
+    campaignId:
+      $ref: '../../openapi.yaml#/components/schemas/ObjectId'
+    name:
+      type: string
+    type:
+      $ref: '../../openapi.yaml#/components/schemas/CharacterType'
+    disposition:
+      $ref: '../../openapi.yaml#/components/schemas/CharacterDisposition'
+    level:
+      type: integer
+      minimum: 1
+      maximum: 20
+      default: 1
+      example: 7
+    maxHp:
+      type: integer
+      minimum: 0
+    armorClass:
+      type: integer
+      minimum: 0
+      default: 10
+    initiativeBonus:
+      type: integer
+      default: 0
+    stats:
+      type: object
+      additionalProperties: true
+      default: {}
+    consumables:
+      type: array
+      default: []
+      items:
+        $ref: '../../openapi.yaml#/components/schemas/Consumable'
+    notes:
+      type: string
+      default: ''
+UpdateCharacterRequest:
+  type: object
+  minProperties: 1
+  additionalProperties: false
+  properties:
+    name:
+      type: string
+    type:
+      $ref: '../../openapi.yaml#/components/schemas/CharacterType'
+    disposition:
+      $ref: '../../openapi.yaml#/components/schemas/CharacterDisposition'
+    level:
+      type: integer
+      minimum: 1
+      maximum: 20
+      default: 1
+      example: 7
+    maxHp:
+      type: integer
+      minimum: 0
+    armorClass:
+      type: integer
+      minimum: 0
+    initiativeBonus:
+      type: integer
+    stats:
+      type: object
+      additionalProperties: true
+    consumables:
+      type: array
+      items:
+        $ref: '../../openapi.yaml#/components/schemas/Consumable'
+    notes:
+      type: string

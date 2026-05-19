@@ -1,0 +1,121 @@
+/api/characters:
+  get:
+    tags:
+      - Characters
+    summary: List characters
+    description: Returns the authenticated user's characters sorted by newest first.
+    parameters:
+      - $ref: '../../openapi.yaml#/components/parameters/CharacterTypeQuery'
+      - $ref: '../../openapi.yaml#/components/parameters/CharacterDispositionQuery'
+      - $ref: '../../openapi.yaml#/components/parameters/CampaignIdQuery'
+    responses:
+      '200':
+        description: Characters found.
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../../openapi.yaml#/components/schemas/Character'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '500':
+        $ref: '../../openapi.yaml#/components/responses/InternalServerError'
+  post:
+    tags:
+      - Characters
+    summary: Create a character
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../../openapi.yaml#/components/schemas/CreateCharacterRequest'
+    responses:
+      '201':
+        description: Character created.
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/Character'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/BadRequest'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '500':
+        $ref: '../../openapi.yaml#/components/responses/InternalServerError'
+/api/characters/{characterId}:
+  parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/CharacterId'
+  get:
+    tags:
+      - Characters
+    summary: Get a character
+    responses:
+      '200':
+        description: Character found.
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/Character'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/BadRequest'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/NotFound'
+      '500':
+        $ref: '../../openapi.yaml#/components/responses/InternalServerError'
+  patch:
+    tags:
+      - Characters
+    summary: Update a character
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../../openapi.yaml#/components/schemas/UpdateCharacterRequest'
+    responses:
+      '200':
+        description: Character updated.
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/Character'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/BadRequest'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/NotFound'
+      '500':
+        $ref: '../../openapi.yaml#/components/responses/InternalServerError'
+  delete:
+    tags:
+      - Characters
+    summary: Delete a character
+    responses:
+      '200':
+        description: Character deleted.
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - message
+                - character
+              properties:
+                message:
+                  type: string
+                  example: Character deleted
+                character:
+                  $ref: '../../openapi.yaml#/components/schemas/Character'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/BadRequest'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/NotFound'
+      '500':
+        $ref: '../../openapi.yaml#/components/responses/InternalServerError'
