@@ -146,7 +146,7 @@ export const updateCharacter = async (req, res) => {
   }
 
   const character = await Character.findOneAndUpdate(buildCharacterLookup(req), updates, {
-    new: true,
+    returnDocument: "after",
     runValidators: true,
   });
 
