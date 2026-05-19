@@ -43,6 +43,22 @@ export const updateConsumable = async (req, res) => {
   const updates = pickAllowedFields(req.body, allowedConsumableUpdateFields);
   if (Object.keys(updates).length === 0) return res.status(400).json({ message: "No valid consumable fields provided" });
 
+  if ("maxUses" in updates) {
+    const parsedMaxUses = parseNonNegativeInt(updates.maxUses);
+    if (parsedMaxUses === null) {
+      return res.status(400).json({ message: "maxUses must be a non-negative integer" });
+    }
+    updates.maxUses = parsedMaxUses;
+  }
+
+  if ("currentUses" in updates) {
+    const parsedCurrentUses = parseNonNegativeInt(updates.currentUses);
+    if (parsedCurrentUses === null) {
+      return res.status(400).json({ message: "currentUses must be a non-negative integer" });
+    }
+    updates.currentUses = parsedCurrentUses;
+  }
+
   const result = await findConsumableOrRespond(req, res);
   if (!result) return;
   const { encounter, entry, consumable } = result;
