@@ -322,7 +322,7 @@ export const updateEncounter = async (req, res) => {
     },
     updates,
     {
-      new: true,
+      returnDocument: "after",
       runValidators: true,
     }
   );
