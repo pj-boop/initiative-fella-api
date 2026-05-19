@@ -113,3 +113,25 @@ describe("level-up session flow", () => {
     expect(unchanged.maxHp).toBe(20);
   });
 });
+
+test("public submission rejects character not in session", async () => {
+  const token = await register();
+  const campaign = await createCampaign(token);
+  const partyMember = await createCharacter(token, campaign._id, "PartyMember", 1);
+  const outsider = await createCharacter(token, campaign._id, "Outsider", 1);
+
+  await request(app).post(`/api/campaigns/${campaign._id}/party/${partyMember._id}`).set("Authorization", `Bearer ${token}`).expect(200);
+
+  const created = await request(app)
+    .post(`/api/campaigns/${campaign._id}/level-up-sessions`)
+    .set("Authorization", `Bearer ${token}`)
+    .send({ title: "Level 2", targetLevel: 2 })
+    .expect(201);
+
+  const response = await request(app)
+    .post(`/api/public/level-up-sessions/${created.body.publicToken}/characters/${outsider._id}/submissions`)
+    .send({ patch: { level: 2 } })
+    .expect(400);
+
+  expect(response.body.message).toBe("Character is not part of this level-up session");
+});
