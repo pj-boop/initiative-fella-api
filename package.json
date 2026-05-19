@@ -8,6 +8,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "nodemon src/index.js",
+    "start": "node src/index.js",
     "test": "vitest run",
     "test:watch": "vitest",
     "api:types": "openapi-typescript docs/openapi.yaml --output src/api/generated/schema.ts"
