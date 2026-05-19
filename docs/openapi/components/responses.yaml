@@ -1,0 +1,48 @@
+BadRequest:
+  description: Invalid input.
+  content:
+    application/json:
+      schema:
+        $ref: '../../openapi.yaml#/components/schemas/ApiError'
+Unauthorized:
+  description: Missing or invalid bearer token.
+  content:
+    application/json:
+      schema:
+        $ref: '../../openapi.yaml#/components/schemas/ApiError'
+NotFound:
+  description: Requested resource was not found for the authenticated user.
+  content:
+    application/json:
+      schema:
+        $ref: '../../openapi.yaml#/components/schemas/ApiError'
+InternalServerError:
+  description: Internal server error.
+  content:
+    application/json:
+      schema:
+        $ref: '../../openapi.yaml#/components/schemas/ApiError'
+TurnResponse:
+  description: Encounter turn state.
+  content:
+    application/json:
+      schema:
+        $ref: '../../openapi.yaml#/components/schemas/TurnResponse'
+EntryMutationResponse:
+  description: Entry and containing encounter after mutation.
+  content:
+    application/json:
+      schema:
+        $ref: '../../openapi.yaml#/components/schemas/EntryMutationResponse'
+EntryMutationCreatedResponse:
+  description: Entry created and containing encounter after mutation.
+  content:
+    application/json:
+      schema:
+        $ref: '../../openapi.yaml#/components/schemas/EntryMutationResponse'
+BatchEntryMutationResponse:
+  description: Entries and containing encounter after mutation.
+  content:
+    application/json:
+      schema:
+        $ref: '../../openapi.yaml#/components/schemas/BatchEntryMutationResponse'

@@ -1,0 +1,243 @@
+/api/encounters:
+  get:
+    tags:
+      - Encounters
+    summary: List encounters
+    description: Returns the authenticated user's encounters sorted by newest first.
+    parameters:
+      - $ref: '../../openapi.yaml#/components/parameters/EncounterStatusQuery'
+      - $ref: '../../openapi.yaml#/components/parameters/CampaignIdQuery'
+    responses:
+      '200':
+        description: Encounters found.
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../../openapi.yaml#/components/schemas/Encounter'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '500':
+        $ref: '../../openapi.yaml#/components/responses/InternalServerError'
+  post:
+    tags:
+      - Encounters
+    summary: Create an encounter
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../../openapi.yaml#/components/schemas/CreateEncounterRequest'
+    responses:
+      '201':
+        description: Encounter created.
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/Encounter'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/BadRequest'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '500':
+        $ref: '../../openapi.yaml#/components/responses/InternalServerError'
+/api/encounters/{encounterId}:
+  parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/EncounterId'
+  get:
+    tags:
+      - Encounters
+    summary: Get an encounter
+    responses:
+      '200':
+        description: Encounter found.
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/Encounter'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/BadRequest'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/NotFound'
+      '500':
+        $ref: '../../openapi.yaml#/components/responses/InternalServerError'
+  patch:
+    tags:
+      - Encounters
+    summary: Update an encounter
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../../openapi.yaml#/components/schemas/UpdateEncounterRequest'
+    responses:
+      '200':
+        description: Encounter updated.
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/Encounter'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/BadRequest'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/NotFound'
+      '500':
+        $ref: '../../openapi.yaml#/components/responses/InternalServerError'
+  delete:
+    tags:
+      - Encounters
+    summary: Delete an encounter
+    responses:
+      '200':
+        description: Encounter deleted.
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - message
+                - encounter
+              properties:
+                message:
+                  type: string
+                  example: Encounter deleted
+                encounter:
+                  $ref: '../../openapi.yaml#/components/schemas/Encounter'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/BadRequest'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/NotFound'
+      '500':
+        $ref: '../../openapi.yaml#/components/responses/InternalServerError'
+/api/encounters/{encounterId}/roll-initiative:
+  parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/EncounterId'
+  post:
+    tags:
+      - Encounters
+    summary: Roll initiative for an encounter
+    description: >-
+      Applies provided manual initiative totals, rolls blank or missing entries when requested, and keeps existing
+      totals unless rerollExisting is true. Optional provided rolls must be integers from 1 to 20.
+    requestBody:
+      required: false
+      content:
+        application/json:
+          schema:
+            $ref: '../../openapi.yaml#/components/schemas/RollInitiativeRequest'
+    responses:
+      '200':
+        $ref: '../../openapi.yaml#/components/responses/TurnResponse'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/BadRequest'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/NotFound'
+      '500':
+        $ref: '../../openapi.yaml#/components/responses/InternalServerError'
+/api/encounters/{encounterId}/start:
+  parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/EncounterId'
+  post:
+    tags:
+      - Encounters
+    summary: Start an encounter
+    responses:
+      '200':
+        $ref: '../../openapi.yaml#/components/responses/TurnResponse'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/BadRequest'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/NotFound'
+      '500':
+        $ref: '../../openapi.yaml#/components/responses/InternalServerError'
+/api/encounters/{encounterId}/turns/next:
+  parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/EncounterId'
+  post:
+    tags:
+      - Encounters
+    summary: Advance to the next turn
+    responses:
+      '200':
+        $ref: '../../openapi.yaml#/components/responses/TurnResponse'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/BadRequest'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/NotFound'
+      '500':
+        $ref: '../../openapi.yaml#/components/responses/InternalServerError'
+/api/encounters/{encounterId}/turns/previous:
+  parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/EncounterId'
+  post:
+    tags:
+      - Encounters
+    summary: Move to the previous turn
+    responses:
+      '200':
+        $ref: '../../openapi.yaml#/components/responses/TurnResponse'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/BadRequest'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/NotFound'
+      '500':
+        $ref: '../../openapi.yaml#/components/responses/InternalServerError'
+/api/encounters/{encounterId}/turns/current:
+  parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/EncounterId'
+  patch:
+    tags:
+      - Encounters
+    summary: Set the current turn or round
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../../openapi.yaml#/components/schemas/UpdateCurrentTurnRequest'
+    responses:
+      '200':
+        $ref: '../../openapi.yaml#/components/responses/TurnResponse'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/BadRequest'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/NotFound'
+      '500':
+        $ref: '../../openapi.yaml#/components/responses/InternalServerError'
+/api/encounters/{encounterId}/end:
+  parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/EncounterId'
+  post:
+    tags:
+      - Encounters
+    summary: End an encounter
+    responses:
+      '200':
+        $ref: '../../openapi.yaml#/components/responses/TurnResponse'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/BadRequest'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/NotFound'
+      '500':
+        $ref: '../../openapi.yaml#/components/responses/InternalServerError'

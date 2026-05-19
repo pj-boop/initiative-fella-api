@@ -1,0 +1,15 @@
+ApiError:
+  type: object
+  required:
+    - message
+  properties:
+    message:
+      type: string
+      example: Invalid credentials
+MessageResponse:
+  type: object
+  required:
+    - message
+  properties:
+    message:
+      type: string

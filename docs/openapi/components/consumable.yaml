@@ -1,0 +1,93 @@
+ConsumableResetOn:
+  type: string
+  enum:
+    - shortRest
+    - longRest
+    - never
+  default: never
+Consumable:
+  type: object
+  required:
+    - _id
+    - name
+    - maxUses
+    - currentUses
+    - resetOn
+    - notes
+    - createdAt
+    - updatedAt
+  properties:
+    _id:
+      $ref: '../../openapi.yaml#/components/schemas/ObjectId'
+    name:
+      type: string
+      example: Rage
+    maxUses:
+      type: integer
+      minimum: 0
+      example: 3
+    currentUses:
+      type: integer
+      minimum: 0
+      example: 2
+    resetOn:
+      $ref: '../../openapi.yaml#/components/schemas/ConsumableResetOn'
+    notes:
+      type: string
+      default: ''
+      example: Resets on long rest.
+    createdAt:
+      $ref: '../../openapi.yaml#/components/schemas/DateTime'
+    updatedAt:
+      $ref: '../../openapi.yaml#/components/schemas/DateTime'
+CreateConsumableRequest:
+  type: object
+  required:
+    - name
+    - maxUses
+    - currentUses
+  additionalProperties: false
+  properties:
+    name:
+      type: string
+    maxUses:
+      type: integer
+      minimum: 0
+    currentUses:
+      type: integer
+      minimum: 0
+    resetOn:
+      $ref: '../../openapi.yaml#/components/schemas/ConsumableResetOn'
+    notes:
+      type: string
+      default: ''
+UpdateConsumableRequest:
+  type: object
+  minProperties: 1
+  additionalProperties: false
+  properties:
+    name:
+      type: string
+    maxUses:
+      type: integer
+      minimum: 0
+    currentUses:
+      type: integer
+      minimum: 0
+    resetOn:
+      $ref: '../../openapi.yaml#/components/schemas/ConsumableResetOn'
+    notes:
+      type: string
+ConsumableMutationResponse:
+  type: object
+  required:
+    - consumable
+    - entry
+    - encounter
+  properties:
+    consumable:
+      $ref: '../../openapi.yaml#/components/schemas/Consumable'
+    entry:
+      $ref: '../../openapi.yaml#/components/schemas/InitiativeEntry'
+    encounter:
+      $ref: '../../openapi.yaml#/components/schemas/Encounter'

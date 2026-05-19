@@ -1,0 +1,108 @@
+RegisterRequest:
+  type: object
+  required:
+    - username
+    - email
+    - password
+  additionalProperties: false
+  properties:
+    username:
+      type: string
+      minLength: 3
+      example: fella
+    email:
+      type: string
+      format: email
+      example: fella@example.com
+    password:
+      type: string
+      minLength: 6
+      format: password
+      writeOnly: true
+      example: secret123
+LoginRequest:
+  type: object
+  required:
+    - email
+    - password
+  additionalProperties: false
+  properties:
+    email:
+      type: string
+      format: email
+      example: fella@example.com
+    password:
+      type: string
+      format: password
+      writeOnly: true
+      example: secret123
+AuthResponse:
+  type: object
+  required:
+    - token
+    - user
+  properties:
+    token:
+      type: string
+      description: JWT signed with the user id and a 15 day expiration.
+      example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+    user:
+      $ref: '../../openapi.yaml#/components/schemas/AuthUser'
+AuthUser:
+  type: object
+  required:
+    - id
+    - username
+    - email
+    - profileImage
+    - createdAt
+  properties:
+    id:
+      $ref: '../../openapi.yaml#/components/schemas/ObjectId'
+    username:
+      type: string
+      minLength: 3
+      example: fella
+    email:
+      type: string
+      format: email
+      example: fella@example.com
+    profileImage:
+      type: string
+      default: ''
+      example: https://api.dicebear.com/7.x/avataaars/svg?seed=fella
+    createdAt:
+      $ref: '../../openapi.yaml#/components/schemas/DateTime'
+ForgotPasswordRequest:
+  type: object
+  required:
+    - email
+  additionalProperties: false
+  properties:
+    email:
+      type: string
+      format: email
+      example: fella@example.com
+ResetPasswordRequest:
+  type: object
+  required:
+    - token
+    - password
+  additionalProperties: false
+  properties:
+    token:
+      type: string
+    password:
+      type: string
+      minLength: 6
+      format: password
+      writeOnly: true
+      example: newsecret123
+PasswordResetRequestResponse:
+  allOf:
+    - $ref: '../../openapi.yaml#/components/schemas/MessageResponse'
+    - type: object
+      properties:
+        resetToken:
+          type: string
+          description: Included only outside production until email delivery is configured.
