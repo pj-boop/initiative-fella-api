@@ -54,48 +54,49 @@ describe("encounter lifecycle", () => {
       })
       .expect(200);
 
-    expect(response.body.turnOrder).toHaveLength(2);
+    expect(response.body.encounter.entries).toHaveLength(2);
 
     response = await request(app)
       .post(`/api/encounters/${encounter.body._id}/start`)
       .set("Authorization", `Bearer ${token}`)
       .expect(200);
 
-    expect(response.body.currentTurnIndex).toBe(0);
-    expect(response.body.round).toBe(1);
+    expect(response.body.encounter.currentTurnIndex).toBe(0);
+    expect(response.body.encounter.round).toBe(1);
+    expect(response.body.encounter.status).toBe("active");
 
     response = await request(app)
       .post(`/api/encounters/${encounter.body._id}/turns/next`)
       .set("Authorization", `Bearer ${token}`)
       .expect(200);
-    expect(response.body.currentTurnIndex).toBe(1);
+    expect(response.body.encounter.currentTurnIndex).toBe(1);
 
     response = await request(app)
       .post(`/api/encounters/${encounter.body._id}/turns/previous`)
       .set("Authorization", `Bearer ${token}`)
       .expect(200);
-    expect(response.body.currentTurnIndex).toBe(0);
+    expect(response.body.encounter.currentTurnIndex).toBe(0);
 
     response = await request(app)
       .patch(`/api/encounters/${encounter.body._id}/turns/current`)
       .set("Authorization", `Bearer ${token}`)
       .send({ entryId: scoutEntry._id })
       .expect(200);
-    expect(response.body.currentTurnIndex).toBe(1);
+    expect(response.body.encounter.currentTurnIndex).toBe(1);
 
     response = await request(app)
       .patch(`/api/encounters/${encounter.body._id}/turns/current`)
       .set("Authorization", `Bearer ${token}`)
       .send({ currentTurnIndex: 0 })
       .expect(200);
-    expect(response.body.currentTurnIndex).toBe(0);
+    expect(response.body.encounter.currentTurnIndex).toBe(0);
 
     response = await request(app)
       .post(`/api/encounters/${encounter.body._id}/end`)
       .set("Authorization", `Bearer ${token}`)
       .expect(200);
 
-    expect(response.body.status).toBe("completed");
+    expect(response.body.encounter.status).toBe("completed");
 
     response = await request(app)
       .post(`/api/encounters/${encounter.body._id}/turns/next`)
