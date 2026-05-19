@@ -1,0 +1,94 @@
+EncounterStatus:
+  type: string
+  enum:
+    - draft
+    - active
+    - completed
+Encounter:
+  type: object
+  required:
+    - _id
+    - user
+    - campaign
+    - name
+    - status
+    - round
+    - currentTurnIndex
+    - entries
+    - notes
+    - createdAt
+    - updatedAt
+  properties:
+    _id:
+      $ref: '../../openapi.yaml#/components/schemas/ObjectId'
+    user:
+      $ref: '../../openapi.yaml#/components/schemas/ObjectId'
+    campaign:
+      $ref: '../../openapi.yaml#/components/schemas/ObjectId'
+    name:
+      type: string
+      example: Goblin Ambush
+    status:
+      $ref: '../../openapi.yaml#/components/schemas/EncounterStatus'
+    round:
+      type: integer
+      minimum: 1
+      default: 1
+    currentTurnIndex:
+      type: integer
+      minimum: 0
+      default: 0
+    entries:
+      type: array
+      default: []
+      items:
+        $ref: '../../openapi.yaml#/components/schemas/InitiativeEntry'
+    notes:
+      type: string
+      default: ''
+    createdAt:
+      $ref: '../../openapi.yaml#/components/schemas/DateTime'
+    updatedAt:
+      $ref: '../../openapi.yaml#/components/schemas/DateTime'
+CreateEncounterRequest:
+  type: object
+  required:
+    - campaignId
+    - name
+  additionalProperties: false
+  properties:
+    campaignId:
+      $ref: '../../openapi.yaml#/components/schemas/ObjectId'
+    name:
+      type: string
+      example: Goblin Ambush
+    notes:
+      type: string
+      default: ''
+    autoAddParty:
+      type: boolean
+      default: false
+      description: When true, creates initiative entries from the campaign's defaultPartyCharacterIds.
+UpdateEncounterRequest:
+  type: object
+  minProperties: 1
+  additionalProperties: false
+  properties:
+    name:
+      type: string
+    status:
+      $ref: '../../openapi.yaml#/components/schemas/EncounterStatus'
+    notes:
+      type: string
+TurnResponse:
+  type: object
+  required:
+    - encounter
+    - currentEntry
+  properties:
+    encounter:
+      $ref: '../../openapi.yaml#/components/schemas/Encounter'
+    currentEntry:
+      oneOf:
+        - $ref: '../../openapi.yaml#/components/schemas/InitiativeEntry'
+        - type: 'null'

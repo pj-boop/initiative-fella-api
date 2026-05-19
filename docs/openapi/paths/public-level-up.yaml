@@ -1,0 +1,61 @@
+/api/public/level-up-sessions/{token}:
+  parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/LevelUpToken'
+  get:
+    tags:
+      - Level-Up Sessions
+    summary: Get public level-up session details
+    security: []
+    description: Returns safe public session data without user ids, token hashes, or private campaign data.
+    responses:
+      '200':
+        description: Public level-up session details.
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/PublicLevelUpSessionResponse'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/NotFound'
+      '410':
+        description: Level-up session is no longer open.
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/ApiError'
+      '500':
+        $ref: '../../openapi.yaml#/components/responses/InternalServerError'
+/api/public/level-up-sessions/{token}/characters/{characterId}/submissions:
+  parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/LevelUpToken'
+    - $ref: '../../openapi.yaml#/components/parameters/CharacterId'
+  post:
+    tags:
+      - Level-Up Sessions
+    summary: Submit a public character level-up update
+    security: []
+    description: Creates or replaces the pending submission for a character without immediately changing the character.
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../../openapi.yaml#/components/schemas/SubmitLevelUpSubmissionRequest'
+    responses:
+      '200':
+        description: Pending submission created or replaced.
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/SubmitLevelUpSubmissionResponse'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/BadRequest'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/NotFound'
+      '410':
+        description: Level-up session is no longer open.
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/ApiError'
+      '500':
+        $ref: '../../openapi.yaml#/components/responses/InternalServerError'

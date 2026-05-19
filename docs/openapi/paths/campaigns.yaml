@@ -1,0 +1,161 @@
+/api/campaigns:
+  get:
+    tags:
+      - Campaigns
+    summary: List campaigns
+    description: Returns the authenticated user's campaigns sorted by newest first.
+    responses:
+      '200':
+        description: Campaigns found.
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../../openapi.yaml#/components/schemas/Campaign'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '500':
+        $ref: '../../openapi.yaml#/components/responses/InternalServerError'
+  post:
+    tags:
+      - Campaigns
+    summary: Create a campaign
+    description: Default party characters cannot be set during creation; create the campaign first, then use the party endpoints.
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../../openapi.yaml#/components/schemas/CreateCampaignRequest'
+    responses:
+      '201':
+        description: Campaign created.
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/Campaign'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/BadRequest'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '500':
+        $ref: '../../openapi.yaml#/components/responses/InternalServerError'
+/api/campaigns/{campaignId}:
+  parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/CampaignId'
+  get:
+    tags:
+      - Campaigns
+    summary: Get a campaign
+    responses:
+      '200':
+        description: Campaign found.
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/Campaign'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/BadRequest'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/NotFound'
+      '500':
+        $ref: '../../openapi.yaml#/components/responses/InternalServerError'
+  patch:
+    tags:
+      - Campaigns
+    summary: Update a campaign
+    description: When updating defaultPartyCharacterIds, every character must belong to the authenticated user and this campaign.
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../../openapi.yaml#/components/schemas/UpdateCampaignRequest'
+    responses:
+      '200':
+        description: Campaign updated.
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/Campaign'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/BadRequest'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/NotFound'
+      '500':
+        $ref: '../../openapi.yaml#/components/responses/InternalServerError'
+  delete:
+    tags:
+      - Campaigns
+    summary: Delete a campaign
+    responses:
+      '200':
+        description: Campaign and related character/encounter data deleted.
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - message
+                - campaign
+              properties:
+                message:
+                  type: string
+                  example: Campaign and related data deleted
+                campaign:
+                  $ref: '../../openapi.yaml#/components/schemas/Campaign'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/BadRequest'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/NotFound'
+      '500':
+        $ref: '../../openapi.yaml#/components/responses/InternalServerError'
+/api/campaigns/{campaignId}/party/{characterId}:
+  parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/CampaignId'
+    - $ref: '../../openapi.yaml#/components/parameters/CharacterId'
+  post:
+    tags:
+      - Campaigns
+    summary: Add a character to a campaign's default party
+    responses:
+      '200':
+        description: Campaign updated.
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/Campaign'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/BadRequest'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/NotFound'
+      '500':
+        $ref: '../../openapi.yaml#/components/responses/InternalServerError'
+  delete:
+    tags:
+      - Campaigns
+    summary: Remove a character from a campaign's default party
+    responses:
+      '200':
+        description: Campaign updated.
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/Campaign'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/BadRequest'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/NotFound'
+      '500':
+        $ref: '../../openapi.yaml#/components/responses/InternalServerError'

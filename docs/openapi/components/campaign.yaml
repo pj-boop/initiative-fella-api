@@ -1,0 +1,54 @@
+Campaign:
+  type: object
+  required:
+    - _id
+    - user
+    - name
+    - notes
+    - defaultPartyCharacterIds
+    - createdAt
+    - updatedAt
+  properties:
+    _id:
+      $ref: '../../openapi.yaml#/components/schemas/ObjectId'
+    user:
+      $ref: '../../openapi.yaml#/components/schemas/ObjectId'
+    name:
+      type: string
+      example: Storm King's Thunder
+    notes:
+      type: string
+      default: ''
+    defaultPartyCharacterIds:
+      type: array
+      default: []
+      items:
+        $ref: '../../openapi.yaml#/components/schemas/ObjectId'
+    createdAt:
+      $ref: '../../openapi.yaml#/components/schemas/DateTime'
+    updatedAt:
+      $ref: '../../openapi.yaml#/components/schemas/DateTime'
+CreateCampaignRequest:
+  type: object
+  required:
+    - name
+  additionalProperties: false
+  properties:
+    name:
+      type: string
+    notes:
+      type: string
+      default: ''
+UpdateCampaignRequest:
+  type: object
+  minProperties: 1
+  additionalProperties: false
+  properties:
+    name:
+      type: string
+    notes:
+      type: string
+    defaultPartyCharacterIds:
+      type: array
+      items:
+        $ref: '../../openapi.yaml#/components/schemas/ObjectId'

@@ -1,0 +1,459 @@
+/api/encounters/{encounterId}/entries/from-character:
+  parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/EncounterId'
+  post:
+    tags:
+      - Initiative Entries
+    summary: Add an initiative entry from an existing character
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - characterId
+            additionalProperties: false
+            properties:
+              characterId:
+                $ref: '../../openapi.yaml#/components/schemas/ObjectId'
+              initiativeMode:
+                $ref: '../../openapi.yaml#/components/schemas/InitiativeMode'
+    responses:
+      '201':
+        $ref: '../../openapi.yaml#/components/responses/EntryMutationCreatedResponse'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/BadRequest'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/NotFound'
+      '500':
+        $ref: '../../openapi.yaml#/components/responses/InternalServerError'
+/api/encounters/{encounterId}/entries/from-party:
+  parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/EncounterId'
+  post:
+    tags:
+      - Initiative Entries
+    summary: Add default party characters to an encounter
+    description: >-
+      Adds entries for the encounter campaign's default party characters, skipping any character already present by
+      entry.characterId.
+    responses:
+      '201':
+        description: Default party entries added.
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - entries
+                - encounter
+              properties:
+                entries:
+                  type: array
+                  items:
+                    $ref: '../../openapi.yaml#/components/schemas/InitiativeEntry'
+                encounter:
+                  $ref: '../../openapi.yaml#/components/schemas/Encounter'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/BadRequest'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/NotFound'
+      '500':
+        $ref: '../../openapi.yaml#/components/responses/InternalServerError'
+/api/encounters/{encounterId}/entries/custom:
+  parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/EncounterId'
+  post:
+    tags:
+      - Initiative Entries
+    summary: Add a custom initiative entry
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../../openapi.yaml#/components/schemas/CreateInitiativeEntryRequest'
+    responses:
+      '201':
+        $ref: '../../openapi.yaml#/components/responses/EntryMutationCreatedResponse'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/BadRequest'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/NotFound'
+      '500':
+        $ref: '../../openapi.yaml#/components/responses/InternalServerError'
+/api/encounters/{encounterId}/entries/batch/damage:
+  parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/EncounterId'
+  post:
+    tags:
+      - Initiative Entries
+    summary: Apply damage to multiple initiative entries
+    requestBody:
+      $ref: '../../openapi.yaml#/components/requestBodies/BatchAmountBody'
+    responses:
+      '200':
+        $ref: '../../openapi.yaml#/components/responses/BatchEntryMutationResponse'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/BadRequest'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/NotFound'
+      '500':
+        $ref: '../../openapi.yaml#/components/responses/InternalServerError'
+/api/encounters/{encounterId}/entries/batch/heal:
+  parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/EncounterId'
+  post:
+    tags:
+      - Initiative Entries
+    summary: Heal multiple initiative entries
+    requestBody:
+      $ref: '../../openapi.yaml#/components/requestBodies/BatchAmountBody'
+    responses:
+      '200':
+        $ref: '../../openapi.yaml#/components/responses/BatchEntryMutationResponse'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/BadRequest'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/NotFound'
+      '500':
+        $ref: '../../openapi.yaml#/components/responses/InternalServerError'
+/api/encounters/{encounterId}/entries/batch/temp-hp:
+  parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/EncounterId'
+  post:
+    tags:
+      - Initiative Entries
+    summary: Set temporary HP for multiple initiative entries
+    requestBody:
+      $ref: '../../openapi.yaml#/components/requestBodies/BatchAmountBody'
+    responses:
+      '200':
+        $ref: '../../openapi.yaml#/components/responses/BatchEntryMutationResponse'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/BadRequest'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/NotFound'
+      '500':
+        $ref: '../../openapi.yaml#/components/responses/InternalServerError'
+/api/encounters/{encounterId}/entries/batch/conditions:
+  parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/EncounterId'
+  post:
+    tags:
+      - Initiative Entries
+    summary: Add or remove a condition for multiple initiative entries
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../../openapi.yaml#/components/schemas/BatchConditionRequest'
+    responses:
+      '200':
+        $ref: '../../openapi.yaml#/components/responses/BatchEntryMutationResponse'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/BadRequest'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/NotFound'
+      '500':
+        $ref: '../../openapi.yaml#/components/responses/InternalServerError'
+/api/encounters/{encounterId}/entries/{entryId}:
+  parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/EncounterId'
+    - $ref: '../../openapi.yaml#/components/parameters/EntryId'
+  patch:
+    tags:
+      - Initiative Entries
+    summary: Update an initiative entry
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../../openapi.yaml#/components/schemas/UpdateInitiativeEntryRequest'
+    responses:
+      '200':
+        $ref: '../../openapi.yaml#/components/responses/EntryMutationResponse'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/BadRequest'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/NotFound'
+      '500':
+        $ref: '../../openapi.yaml#/components/responses/InternalServerError'
+  delete:
+    tags:
+      - Initiative Entries
+    summary: Remove an initiative entry from turn order
+    description: Marks the entry status as `removed` rather than deleting the subdocument.
+    responses:
+      '200':
+        description: Entry removed.
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../../openapi.yaml#/components/schemas/EntryMutationResponse'
+                - type: object
+                  required:
+                    - message
+                  properties:
+                    message:
+                      type: string
+                      example: Entry removed
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/BadRequest'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/NotFound'
+      '500':
+        $ref: '../../openapi.yaml#/components/responses/InternalServerError'
+/api/encounters/{encounterId}/entries/{entryId}/damage:
+  parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/EncounterId'
+    - $ref: '../../openapi.yaml#/components/parameters/EntryId'
+  post:
+    tags:
+      - Initiative Entries
+    summary: Apply damage to an initiative entry
+    requestBody:
+      $ref: '../../openapi.yaml#/components/requestBodies/AmountBody'
+    responses:
+      '200':
+        $ref: '../../openapi.yaml#/components/responses/EntryMutationResponse'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/BadRequest'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/NotFound'
+      '500':
+        $ref: '../../openapi.yaml#/components/responses/InternalServerError'
+/api/encounters/{encounterId}/entries/{entryId}/heal:
+  parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/EncounterId'
+    - $ref: '../../openapi.yaml#/components/parameters/EntryId'
+  post:
+    tags:
+      - Initiative Entries
+    summary: Heal an initiative entry
+    requestBody:
+      $ref: '../../openapi.yaml#/components/requestBodies/AmountBody'
+    responses:
+      '200':
+        $ref: '../../openapi.yaml#/components/responses/EntryMutationResponse'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/BadRequest'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/NotFound'
+      '500':
+        $ref: '../../openapi.yaml#/components/responses/InternalServerError'
+/api/encounters/{encounterId}/entries/{entryId}/temp-hp:
+  parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/EncounterId'
+    - $ref: '../../openapi.yaml#/components/parameters/EntryId'
+  post:
+    tags:
+      - Initiative Entries
+    summary: Set temporary HP for an initiative entry
+    requestBody:
+      $ref: '../../openapi.yaml#/components/requestBodies/AmountBody'
+    responses:
+      '200':
+        $ref: '../../openapi.yaml#/components/responses/EntryMutationResponse'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/BadRequest'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/NotFound'
+      '500':
+        $ref: '../../openapi.yaml#/components/responses/InternalServerError'
+/api/encounters/{encounterId}/entries/{entryId}/conditions:
+  parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/EncounterId'
+    - $ref: '../../openapi.yaml#/components/parameters/EntryId'
+  post:
+    tags:
+      - Initiative Entries
+    summary: Add a condition to an initiative entry
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - condition
+            additionalProperties: false
+            properties:
+              condition:
+                type: string
+                minLength: 1
+                example: prone
+    responses:
+      '200':
+        $ref: '../../openapi.yaml#/components/responses/EntryMutationResponse'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/BadRequest'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/NotFound'
+      '500':
+        $ref: '../../openapi.yaml#/components/responses/InternalServerError'
+/api/encounters/{encounterId}/entries/{entryId}/conditions/{condition}:
+  parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/EncounterId'
+    - $ref: '../../openapi.yaml#/components/parameters/EntryId'
+    - name: condition
+      in: path
+      required: true
+      schema:
+        type: string
+      description: Condition text to remove.
+  delete:
+    tags:
+      - Initiative Entries
+    summary: Remove a condition from an initiative entry
+    responses:
+      '200':
+        $ref: '../../openapi.yaml#/components/responses/EntryMutationResponse'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/BadRequest'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/NotFound'
+      '500':
+        $ref: '../../openapi.yaml#/components/responses/InternalServerError'
+/api/encounters/{encounterId}/entries/{entryId}/consumables:
+  parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/EncounterId'
+    - $ref: '../../openapi.yaml#/components/parameters/EntryId'
+  post:
+    tags:
+      - Initiative Entries
+    summary: Add a consumable to an initiative entry
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../../openapi.yaml#/components/schemas/CreateConsumableRequest'
+    responses:
+      '201':
+        description: Consumable added.
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/ConsumableMutationResponse'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/BadRequest'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/NotFound'
+      '500':
+        $ref: '../../openapi.yaml#/components/responses/InternalServerError'
+/api/encounters/{encounterId}/entries/{entryId}/consumables/{consumableId}:
+  parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/EncounterId'
+    - $ref: '../../openapi.yaml#/components/parameters/EntryId'
+    - $ref: '../../openapi.yaml#/components/parameters/ConsumableId'
+  patch:
+    tags:
+      - Initiative Entries
+    summary: Update an initiative entry consumable
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../../openapi.yaml#/components/schemas/UpdateConsumableRequest'
+    responses:
+      '200':
+        description: Consumable updated.
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/ConsumableMutationResponse'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/BadRequest'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/NotFound'
+      '500':
+        $ref: '../../openapi.yaml#/components/responses/InternalServerError'
+  delete:
+    tags:
+      - Initiative Entries
+    summary: Remove an initiative entry consumable
+    responses:
+      '200':
+        description: Consumable removed.
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '../../openapi.yaml#/components/schemas/EntryMutationResponse'
+                - type: object
+                  required:
+                    - message
+                  properties:
+                    message:
+                      type: string
+                      example: Consumable removed
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/BadRequest'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/NotFound'
+      '500':
+        $ref: '../../openapi.yaml#/components/responses/InternalServerError'
+/api/encounters/{encounterId}/entries/{entryId}/consumables/{consumableId}/use:
+  parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/EncounterId'
+    - $ref: '../../openapi.yaml#/components/parameters/EntryId'
+    - $ref: '../../openapi.yaml#/components/parameters/ConsumableId'
+  post:
+    tags:
+      - Initiative Entries
+    summary: Use one charge of a consumable
+    responses:
+      '200':
+        description: Consumable used.
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/ConsumableMutationResponse'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/BadRequest'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/NotFound'
+      '500':
+        $ref: '../../openapi.yaml#/components/responses/InternalServerError'

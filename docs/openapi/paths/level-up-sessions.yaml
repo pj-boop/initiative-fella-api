@@ -1,0 +1,157 @@
+/api/campaigns/{campaignId}/level-up-sessions:
+  parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/CampaignId'
+  get:
+    tags:
+      - Level-Up Sessions
+    summary: List level-up sessions
+    description: Returns the campaign's level-up sessions sorted newest first. Optionally filter by status.
+    parameters:
+      - in: query
+        name: status
+        required: false
+        schema:
+          $ref: '../../openapi.yaml#/components/schemas/LevelUpStatus'
+    responses:
+      '200':
+        description: Level-up sessions found.
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '../../openapi.yaml#/components/schemas/LevelUpSessionSummary'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/BadRequest'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/NotFound'
+      '500':
+        $ref: '../../openapi.yaml#/components/responses/InternalServerError'
+  post:
+    tags:
+      - Level-Up Sessions
+    summary: Open a level-up session
+    description: Creates a public token for the campaign's default party characters.
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../../openapi.yaml#/components/schemas/CreateLevelUpSessionRequest'
+    responses:
+      '201':
+        description: Level-up session opened.
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/CreateLevelUpSessionResponse'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/BadRequest'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/NotFound'
+      '500':
+        $ref: '../../openapi.yaml#/components/responses/InternalServerError'
+/api/campaigns/{campaignId}/level-up-sessions/{sessionId}:
+  parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/CampaignId'
+    - $ref: '../../openapi.yaml#/components/parameters/LevelUpSessionId'
+  get:
+    tags:
+      - Level-Up Sessions
+    summary: Review a level-up session
+    description: Returns submissions and allowed character records that have not submitted a pending or accepted update.
+    responses:
+      '200':
+        description: Level-up session review data.
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/LevelUpSessionReviewResponse'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/BadRequest'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/NotFound'
+      '500':
+        $ref: '../../openapi.yaml#/components/responses/InternalServerError'
+/api/campaigns/{campaignId}/level-up-sessions/{sessionId}/regenerate-link:
+  parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/CampaignId'
+    - $ref: '../../openapi.yaml#/components/parameters/LevelUpSessionId'
+  post:
+    tags:
+      - Level-Up Sessions
+    summary: Regenerate a level-up session public link
+    description: Replaces the hashed public token for an open session and returns a new public URL.
+    responses:
+      '200':
+        description: Level-up session public link regenerated.
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/CreateLevelUpSessionResponse'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/BadRequest'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/NotFound'
+      '500':
+        $ref: '../../openapi.yaml#/components/responses/InternalServerError'
+/api/campaigns/{campaignId}/level-up-sessions/{sessionId}/accept-all:
+  parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/CampaignId'
+    - $ref: '../../openapi.yaml#/components/parameters/LevelUpSessionId'
+  post:
+    tags:
+      - Level-Up Sessions
+    summary: Accept all pending level-up submissions
+    description: >-
+      Applies each pending patch to its character, marks submissions accepted, completes the session, and invalidates
+      the public token.
+    responses:
+      '200':
+        description: Pending submissions accepted.
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/LevelUpBulkActionResponse'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/BadRequest'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/NotFound'
+      '500':
+        $ref: '../../openapi.yaml#/components/responses/InternalServerError'
+/api/campaigns/{campaignId}/level-up-sessions/{sessionId}/discard-all:
+  parameters:
+    - $ref: '../../openapi.yaml#/components/parameters/CampaignId'
+    - $ref: '../../openapi.yaml#/components/parameters/LevelUpSessionId'
+  post:
+    tags:
+      - Level-Up Sessions
+    summary: Discard all pending level-up submissions
+    description: >-
+      Marks pending submissions discarded, discards the session, invalidates the public token, and leaves characters
+      unchanged.
+    responses:
+      '200':
+        description: Pending submissions discarded.
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/LevelUpBulkActionResponse'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/BadRequest'
+      '401':
+        $ref: '../../openapi.yaml#/components/responses/Unauthorized'
+      '404':
+        $ref: '../../openapi.yaml#/components/responses/NotFound'
+      '500':
+        $ref: '../../openapi.yaml#/components/responses/InternalServerError'

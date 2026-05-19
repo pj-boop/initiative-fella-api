@@ -1,0 +1,292 @@
+LevelUpStatus:
+  type: string
+  enum:
+    - open
+    - completed
+    - discarded
+    - closed
+LevelUpSubmissionStatus:
+  type: string
+  enum:
+    - pending
+    - accepted
+    - discarded
+LevelUpPatch:
+  type: object
+  minProperties: 1
+  additionalProperties: false
+  properties:
+    level:
+      type: integer
+      minimum: 1
+      maximum: 20
+      example: 8
+    maxHp:
+      type: integer
+      minimum: 1
+      example: 61
+    armorClass:
+      type: integer
+      minimum: 1
+      maximum: 40
+      example: 17
+    initiativeBonus:
+      type: integer
+      minimum: -20
+      maximum: 30
+      example: 4
+    notes:
+      type: string
+      example: Took Sentinel feat
+LevelUpSnapshot:
+  type: object
+  additionalProperties: true
+  properties:
+    level:
+      type: integer
+      example: 7
+    maxHp:
+      type: integer
+      example: 52
+    armorClass:
+      type: integer
+      example: 16
+    initiativeBonus:
+      type: integer
+      example: 3
+    notes:
+      type: string
+LevelUpSession:
+  type: object
+  required:
+    - id
+    - campaign
+    - title
+    - targetLevel
+    - status
+    - expiresAt
+    - allowedCharacterIds
+    - createdAt
+    - updatedAt
+  properties:
+    id:
+      $ref: '../../openapi.yaml#/components/schemas/ObjectId'
+    campaign:
+      $ref: '../../openapi.yaml#/components/schemas/ObjectId'
+    title:
+      type: string
+      example: Level 8 Update
+    targetLevel:
+      type: integer
+      minimum: 1
+      maximum: 20
+      example: 8
+    status:
+      $ref: '../../openapi.yaml#/components/schemas/LevelUpStatus'
+    expiresAt:
+      $ref: '../../openapi.yaml#/components/schemas/DateTime'
+    allowedCharacterIds:
+      type: array
+      items:
+        $ref: '../../openapi.yaml#/components/schemas/ObjectId'
+    createdAt:
+      $ref: '../../openapi.yaml#/components/schemas/DateTime'
+    updatedAt:
+      $ref: '../../openapi.yaml#/components/schemas/DateTime'
+LevelUpSessionSummary:
+  allOf:
+    - $ref: '../../openapi.yaml#/components/schemas/LevelUpSession'
+    - type: object
+      required:
+        - submittedCount
+        - totalCharacterCount
+      properties:
+        submittedCount:
+          type: integer
+          minimum: 0
+          example: 2
+        totalCharacterCount:
+          type: integer
+          minimum: 0
+          example: 5
+CreateLevelUpSessionRequest:
+  type: object
+  required:
+    - title
+    - targetLevel
+  additionalProperties: false
+  properties:
+    title:
+      type: string
+      example: Level 8 Update
+    targetLevel:
+      type: integer
+      minimum: 1
+      maximum: 20
+      example: 8
+    expiresInHours:
+      type: number
+      exclusiveMinimum: 0
+      default: 48
+      example: 48
+CreateLevelUpSessionResponse:
+  type: object
+  required:
+    - sessionId
+    - publicToken
+    - publicUrl
+  properties:
+    sessionId:
+      $ref: '../../openapi.yaml#/components/schemas/ObjectId'
+    publicToken:
+      type: string
+    publicUrl:
+      type: string
+      format: uri
+      example: https://your-web-app.com/level-up/abc123
+PublicLevelUpCharacter:
+  type: object
+  required:
+    - id
+    - name
+    - level
+    - maxHp
+    - armorClass
+    - initiativeBonus
+  properties:
+    id:
+      $ref: '../../openapi.yaml#/components/schemas/ObjectId'
+    name:
+      type: string
+      example: Tharion
+    level:
+      type: integer
+      example: 7
+    maxHp:
+      type: integer
+      example: 52
+    armorClass:
+      type: integer
+      example: 16
+    initiativeBonus:
+      type: integer
+      example: 3
+PublicLevelUpSessionResponse:
+  type: object
+  required:
+    - title
+    - targetLevel
+    - campaignName
+    - status
+    - expiresAt
+    - characters
+  properties:
+    title:
+      type: string
+      example: Level 8 Update
+    targetLevel:
+      type: integer
+      example: 8
+    campaignName:
+      type: string
+      example: Curse of Strahd
+    status:
+      $ref: '../../openapi.yaml#/components/schemas/LevelUpStatus'
+    expiresAt:
+      $ref: '../../openapi.yaml#/components/schemas/DateTime'
+    characters:
+      type: array
+      items:
+        $ref: '../../openapi.yaml#/components/schemas/PublicLevelUpCharacter'
+SubmitLevelUpSubmissionRequest:
+  type: object
+  additionalProperties: false
+  properties:
+    submittedByName:
+      type: string
+      example: Alyssa
+    patch:
+      $ref: '../../openapi.yaml#/components/schemas/LevelUpPatch'
+SubmitLevelUpSubmissionResponse:
+  type: object
+  required:
+    - submissionId
+    - status
+    - characterId
+  properties:
+    submissionId:
+      $ref: '../../openapi.yaml#/components/schemas/ObjectId'
+    status:
+      $ref: '../../openapi.yaml#/components/schemas/LevelUpSubmissionStatus'
+    characterId:
+      $ref: '../../openapi.yaml#/components/schemas/ObjectId'
+LevelUpMissingCharacter:
+  type: object
+  required:
+    - id
+    - name
+  properties:
+    id:
+      $ref: '../../openapi.yaml#/components/schemas/ObjectId'
+    name:
+      type: string
+      example: Mira
+LevelUpSubmissionReview:
+  type: object
+  required:
+    - id
+    - characterId
+    - characterName
+    - previousSnapshot
+    - patch
+    - status
+    - createdAt
+    - updatedAt
+  properties:
+    id:
+      $ref: '../../openapi.yaml#/components/schemas/ObjectId'
+    characterId:
+      $ref: '../../openapi.yaml#/components/schemas/ObjectId'
+    characterName:
+      type: string
+      example: Tharion
+    submittedByName:
+      type: string
+    previousSnapshot:
+      $ref: '../../openapi.yaml#/components/schemas/LevelUpSnapshot'
+    patch:
+      $ref: '../../openapi.yaml#/components/schemas/LevelUpPatch'
+    status:
+      $ref: '../../openapi.yaml#/components/schemas/LevelUpSubmissionStatus'
+    createdAt:
+      $ref: '../../openapi.yaml#/components/schemas/DateTime'
+    updatedAt:
+      $ref: '../../openapi.yaml#/components/schemas/DateTime'
+LevelUpSessionReviewResponse:
+  type: object
+  required:
+    - session
+    - submissions
+    - missingCharacters
+  properties:
+    session:
+      $ref: '../../openapi.yaml#/components/schemas/LevelUpSession'
+    submissions:
+      type: array
+      items:
+        $ref: '../../openapi.yaml#/components/schemas/LevelUpSubmissionReview'
+    missingCharacters:
+      type: array
+      items:
+        $ref: '../../openapi.yaml#/components/schemas/LevelUpMissingCharacter'
+LevelUpBulkActionResponse:
+  type: object
+  properties:
+    message:
+      type: string
+    acceptedCount:
+      type: integer
+    discardedCount:
+      type: integer
+    session:
+      $ref: '../../openapi.yaml#/components/schemas/LevelUpSession'

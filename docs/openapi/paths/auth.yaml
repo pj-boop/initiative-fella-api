@@ -1,0 +1,109 @@
+/api/auth/register:
+  post:
+    tags:
+      - Auth
+    summary: Register a new user
+    description: Creates a user and returns a JWT plus public user profile data.
+    security: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../../openapi.yaml#/components/schemas/RegisterRequest'
+          examples:
+            default:
+              value:
+                username: fella
+                email: fella@example.com
+                password: secret123
+    responses:
+      '201':
+        description: User registered.
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/AuthResponse'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/BadRequest'
+      '500':
+        $ref: '../../openapi.yaml#/components/responses/InternalServerError'
+/api/auth/login:
+  post:
+    tags:
+      - Auth
+    summary: Log in an existing user
+    description: Authenticates by email and password, then returns a JWT plus public user profile data.
+    security: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../../openapi.yaml#/components/schemas/LoginRequest'
+          examples:
+            default:
+              value:
+                email: fella@example.com
+                password: secret123
+    responses:
+      '200':
+        description: User authenticated.
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/AuthResponse'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/BadRequest'
+      '500':
+        $ref: '../../openapi.yaml#/components/responses/InternalServerError'
+/api/auth/forgot-password:
+  post:
+    tags:
+      - Auth
+    summary: Request a password reset token
+    description: >-
+      Stores a hashed reset token for the user if the email exists. Non-production responses include the raw token until
+      email delivery is wired up.
+    security: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../../openapi.yaml#/components/schemas/ForgotPasswordRequest'
+    responses:
+      '200':
+        description: Password reset request accepted.
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/PasswordResetRequestResponse'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/BadRequest'
+      '500':
+        $ref: '../../openapi.yaml#/components/responses/InternalServerError'
+/api/auth/reset-password:
+  post:
+    tags:
+      - Auth
+    summary: Reset a password
+    description: Replaces the user's password when the reset token is valid and unexpired.
+    security: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../../openapi.yaml#/components/schemas/ResetPasswordRequest'
+    responses:
+      '200':
+        description: Password reset successfully.
+        content:
+          application/json:
+            schema:
+              $ref: '../../openapi.yaml#/components/schemas/MessageResponse'
+      '400':
+        $ref: '../../openapi.yaml#/components/responses/BadRequest'
+      '500':
+        $ref: '../../openapi.yaml#/components/responses/InternalServerError'
