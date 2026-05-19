@@ -37,8 +37,11 @@ describe("encounter lifecycle", () => {
     const entries = encounter.body.entries;
     expect(entries).toHaveLength(2);
 
-    const heroEntry = entries.find((entry) => entry.character?.toString() === hero._id);
-    const scoutEntry = entries.find((entry) => entry.character?.toString() === scout._id);
+    const heroEntry = entries.find((entry) => String(entry.characterId) === hero._id);
+    const scoutEntry = entries.find((entry) => String(entry.characterId) === scout._id);
+
+    expect(heroEntry).toBeTruthy();
+    expect(scoutEntry).toBeTruthy();
 
     let response = await request(app)
       .post(`/api/encounters/${encounter.body._id}/roll-initiative`)
